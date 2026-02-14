@@ -115,6 +115,6 @@ class API {
     }
 
     static async updateBookingStatus(id, action, notes = '') {
-        return await this.request(`/bookings/chc/${id}/action/`, 'PUT', { action, notes }, true);
+        return await this.request(`/bookings/chc/${id}/action/`, 'PATCH', { action, notes }, true);
     }
 }

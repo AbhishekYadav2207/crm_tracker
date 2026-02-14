@@ -36,22 +36,45 @@
             <div id="view-container">
                 <!-- Dashboard View (Default) -->
                 <div id="dashboard-view" class="view-section">
-                    <div class="flex gap-4 lg:grid-cols-4 grid grid-cols-1 md:grid-cols-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         <div class="stat-card">
                             <div class="stat-label">Total Machines</div>
                             <div class="stat-value" id="stat-total-machines">-</div>
+                            <div class="stat-icon"><i class="fa-solid fa-tractor text-primary opacity-20"></i></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Available</div>
-                            <div class="stat-value text-success" id="stat-available">-</div> <!-- text-success custom class needed? -->
+                            <div class="stat-value text-success" id="stat-available">-</div>
+                            <div class="stat-icon"><i class="fa-solid fa-check-circle text-success opacity-20"></i></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">In Use</div>
                             <div class="stat-value text-warning" id="stat-in-use">-</div>
+                            <div class="stat-icon"><i class="fa-solid fa-clock text-warning opacity-20"></i></div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Pending Bookings</div>
                             <div class="stat-value text-danger" id="stat-pending">-</div>
+                            <div class="stat-icon"><i class="fa-solid fa-clipboard-list text-danger opacity-20"></i></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-lg mb-4">Recent Bookings</h3>
+                        <div class="glass-panel overflow-hidden" style="border-radius: var(--radius);">
+                            <table class="w-full text-left" style="border-collapse: collapse;">
+                                <thead class="bg-gray-50">
+                                    <tr style="border-bottom: 1px solid var(--border);">
+                                        <th class="p-4 font-semibold text-sm text-gray-600">Farmer</th>
+                                        <th class="p-4 font-semibold text-sm text-gray-600">Machine</th>
+                                        <th class="p-4 font-semibold text-sm text-gray-600 hidden md:table-cell">Dates</th>
+                                        <th class="p-4 font-semibold text-sm text-gray-600">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-activity-tbody">
+                                    <tr><td colspan="4" class="p-4 text-center text-muted">Loading recent activity...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -103,6 +126,46 @@
         </main>
     </div>
     
+    <!-- Booking Details Modal -->
+    <div id="booking-details-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="close-modal" onclick="UI.hideModal('booking-details-modal')">&times;</button>
+            <h2 class="mb-4">Booking Details</h2>
+            <div id="booking-details-content" class="flex flex-col gap-4">
+                <!-- Content injected via JS -->
+            </div>
+            <div id="booking-actions" class="flex gap-2 mt-6 justify-end">
+                <!-- Actions injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Machine Details Modal -->
+    <div id="machine-details-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px;">
+            <button class="close-modal" onclick="UI.hideModal('machine-details-modal')">&times;</button>
+            <h2 class="mb-4" id="machine-modal-title">Machine Details</h2>
+            
+            <div class="tabs mb-4 flex border-b">
+                <button class="tab-btn active p-2 border-b-2 border-primary" onclick="switchTab('overview')">Overview</button>
+                <button class="tab-btn p-2" onclick="switchTab('usage')">Usage History</button>
+                <button class="tab-btn p-2" onclick="switchTab('maintenance')">Maintenance</button>
+            </div>
+
+            <div id="machine-tab-overview" class="tab-content">
+                <!-- Overview Content -->
+            </div>
+            <div id="machine-tab-usage" class="tab-content hidden">
+                <p class="text-muted">Usage history log...</p>
+                <div id="machine-usage-list"></div>
+            </div>
+            <div id="machine-tab-maintenance" class="tab-content hidden">
+                 <p class="text-muted">Maintenance log...</p>
+                 <div id="machine-maintenance-list"></div>
+            </div>
+        </div>
+    </div>
+    
     <div id="toast-container" class="toast-container"></div>
 
     <script src="js/ui.js"></script>
@@ -113,17 +176,66 @@
             window.location.href = 'index.html';
         }
 
+        // Helper to get status class
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Pending': return 'badge-warning';
+                case 'Approved': return 'badge-success';
+                case 'Rejected': return 'badge-danger'; 
+                case 'Active': return 'badge-primary'; // Custom CSS needed? or reuse standard
+                case 'Completed': return 'badge-success';
+                case 'Cancelled': return 'badge-danger';
+                default: return '';
+            }
+        }
+
         // Load Dashboard Data
         async function loadDashboard() {
             try {
+                // 1. Load Stats
                 const stats = await API.getCHCDashboard();
                 document.getElementById('stat-total-machines').textContent = stats.total_machines;
                 document.getElementById('stat-available').textContent = stats.machines_available;
                 document.getElementById('stat-in-use').textContent = stats.machines_in_use;
                 document.getElementById('stat-pending').textContent = stats.pending_bookings;
+
+                // 2. Load Recent Activity (Recent Bookings)
+                const bookings = await API.getCHCBookings();
+                
+                // Handle pagination if present (though api.js usually handles it, verify just in case)
+                const list = Array.isArray(bookings) ? bookings : (bookings.results || []);
+                const recent = list.slice(0, 5);
+                
+                const tbody = document.getElementById('recent-activity-tbody');
+                tbody.innerHTML = '';
+
+                if (recent.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-muted">No recent activity found.</td></tr>';
+                } else {
+                    recent.forEach(b => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b last:border-0 hover:bg-gray-50 transition-colors';
+                        tr.innerHTML = `
+                            <td class="p-4">
+                                <span class="font-medium">${b.farmer_name}</span>
+                            </td>
+                            <td class="p-4 text-sm text-gray-600">
+                                ${b.machine_details ? b.machine_details.machine_name : 'N/A'}
+                            </td>
+                            <td class="p-4 text-sm text-gray-600 hidden md:table-cell">
+                                ${b.start_date}
+                            </td>
+                            <td class="p-4">
+                                <span class="badge ${getStatusClass(b.status)} text-xs">${b.status}</span>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
             } catch (err) {
-                console.error(err);
-                UI.showToast('Failed to load dashboard data', 'error');
+                console.error("Dashboard Load Error:", err);
+                UI.showToast('Failed to load dashboard data. Please verify your connection.', 'error');
             }
         }
 
@@ -148,12 +260,17 @@
             }
         }
 
+        // Global state to store items for modal access if needed
+        let currentBookings = [];
+        let currentMachines = [];
+
         async function loadBookings() {
             const tbody = document.getElementById('bookings-table-body');
             tbody.innerHTML = '<tr><td class="p-4">Loading...</td></tr>';
             try {
-                // Fetch bookings (API handles CHC filtering based on user)
-                const bookings = await API.getCHCBookings(); 
+                const response = await API.getCHCBookings(); 
+                const bookings = Array.isArray(response) ? response : (response.results || []);
+                currentBookings = bookings;
                 tbody.innerHTML = '';
                 
                 if (bookings.length === 0) {
@@ -163,32 +280,23 @@
 
                 bookings.forEach(b => {
                     const tr = document.createElement('tr');
-                    let actions = '';
-                    if (b.status === 'Pending') {
-                        actions = `
-                            <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: var(--success);" onclick="updateBookingStatus('${b.id}', 'approve')">Approve</button>
-                            <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: var(--danger);" onclick="updateBookingStatus('${b.id}', 'reject')">Reject</button>
-                        `;
-                    } else {
-                        actions = `<span class="text-muted">-</span>`;
-                    }
-
+                    tr.className = 'border-b hover:bg-gray-50 transition-colors';
                     tr.innerHTML = `
                         <td class="p-4">
-                            <div class="font-bold">${b.farmer_name}</div>
+                            <div class="font-bold text-gray-800">${b.farmer_name}</div>
                             <div class="text-sm text-muted">${b.farmer_contact}</div>
                         </td>
                         <td class="p-4">
-                            <div>${b.machine_details ? b.machine_details.machine_name : 'N/A'}</div>
-                            <small>${b.machine_details ? b.machine_details.machine_code : ''}</small>
+                            <div class="text-gray-800">${b.machine_details ? b.machine_details.machine_name : 'N/A'}</div>
+                            <small class="text-muted block">${b.machine_details ? b.machine_details.machine_code : ''}</small>
                         </td>
+                        <td class="p-4 text-sm">
+                            <div class="font-medium">${b.start_date}</div>
+                            <div class="text-muted">to ${b.end_date}</div>
+                        </td>
+                        <td class="p-4"><span class="badge ${getStatusClass(b.status)} text-xs">${b.status}</span></td>
                         <td class="p-4">
-                            <div>${b.start_date} to</div>
-                            <div>${b.end_date}</div>
-                        </td>
-                        <td class="p-4"><span class="badge ${getStatusClass(b.status)}">${b.status}</span></td>
-                        <td class="p-4 flex gap-2">
-                            ${actions}
+                            <button class="btn btn-secondary text-sm px-3 py-1" onclick="viewBookingDetails('${b.id}')">View Details</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -199,52 +307,29 @@
             }
         }
 
-        async function updateBookingStatus(id, action) {
-            if (!confirm(`Are you sure you want to ${action} this booking?`)) return;
-            
-            try {
-                // Prompt for notes if rejecting
-                let notes = '';
-                if (action === 'reject') {
-                    notes = prompt("Enter rejection reason:");
-                    if (!notes) return; 
-                }
-
-                await API.updateBookingStatus(id, action, notes);
-                UI.showToast(`Booking ${action}ed successfully`, 'success');
-                loadBookings(); // Refresh list
-                loadDashboard(); // Refresh stats
-            } catch (err) {
-                UI.showToast(err.message || 'Action failed', 'error');
-            }
-        }
-
-        function getStatusClass(status) {
-            switch(status) {
-                case 'Pending': return 'bg-warning text-warning-content'; // Need to define utility or style
-                case 'Approved': return 'bg-success text-white';
-                case 'Rejected': return 'bg-danger text-white';
-                case 'Completed': return 'bg-primary text-white';
-                default: return 'bg-gray-200';
-            }
-        }
-
         async function loadMachines() {
             const tbody = document.getElementById('machines-table-body');
             tbody.innerHTML = '<tr><td class="p-4">Loading...</td></tr>';
             try {
-                // Determine user's CHC ID somehow or use the CHC specific endpoint
-                // The API plan says GET /api/v1/machines/ returns list for CHC admin
-                const machines = await API.getMachines(false); 
+                const response = await API.getMachines(false); 
+                const machines = Array.isArray(response) ? response : (response.results || []);
+                currentMachines = machines;
                 tbody.innerHTML = '';
+                
+                if (machines.length === 0) {
+                     tbody.innerHTML = '<tr><td class="p-4" colspan="4">No machines found.</td></tr>';
+                     return;
+                }
+
                 machines.forEach(m => {
                     const tr = document.createElement('tr');
+                    tr.className = 'border-b hover:bg-gray-50 transition-colors';
                     tr.innerHTML = `
-                        <td class="p-4">${m.machine_name}</td>
-                        <td class="p-4">${m.machine_type}</td>
-                        <td class="p-4"><span class="badge">${m.status}</span></td>
+                        <td class="p-4 font-medium text-gray-800">${m.machine_name}</td>
+                        <td class="p-4 text-gray-600">${m.machine_type}</td>
+                        <td class="p-4"><span class="badge ${m.status === 'Available' ? 'badge-success' : 'badge-warning'} text-xs">${m.status}</span></td>
                         <td class="p-4">
-                            <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Edit</button>
+                            <button class="btn btn-secondary text-sm px-3 py-1" onclick="viewMachineDetails('${m.id}')">View Details</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -252,6 +337,204 @@
             } catch(e) {
                 tbody.innerHTML = '<tr><td class="p-4 text-red-500">Error loading machines</td></tr>';
             }
+        }
+
+        // --- Modals Logic ---
+
+        function viewBookingDetails(id) {
+            const booking = currentBookings.find(b => b.id == id);
+            if (!booking) return;
+
+            const content = document.getElementById('booking-details-content');
+            content.innerHTML = `
+                <div class="flex flex-col gap-6">
+                     <!-- Farmer Card -->
+                     <div class="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                        <div class="flex items-center gap-3 mb-3 border-b border-gray-100 pb-2">
+                             <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-primary"><i class="fa-solid fa-user"></i></div>
+                             <div>
+                                <div class="font-bold text-gray-800 text-lg leading-tight">${booking.farmer_name}</div>
+                                <div class="text-xs text-muted font-medium uppercase tracking-wide">Farmer Details</div>
+                             </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <label class="text-xs text-muted uppercase font-semibold block mb-1">Contact Number</label>
+                                <div class="font-medium text-gray-700"><i class="fa-solid fa-phone text-xs mr-2 text-gray-400"></i>${booking.farmer_contact}</div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-muted uppercase font-semibold block mb-1">Email Address</label>
+                                <div class="font-medium text-gray-700 truncate" title="${booking.farmer_email}"><i class="fa-solid fa-envelope text-xs mr-2 text-gray-400"></i>${booking.farmer_email || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Status & Dates -->
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex flex-col justify-between">
+                             <div>
+                                <div class="text-xs text-muted font-semibold uppercase tracking-wider mb-2">Booking Status</div>
+                                <div><span class="badge ${getStatusClass(booking.status)}">${booking.status}</span></div>
+                             </div>
+                             <div class="mt-4 pt-4 border-t border-gray-200">
+                                <div class="text-xs text-muted font-semibold uppercase tracking-wider mb-1">Scheduled Dates</div>
+                                <div class="font-bold text-gray-800 flex items-center gap-2">
+                                    <i class="fa-regular fa-calendar text-gray-400"></i>
+                                    ${booking.start_date} <span class="text-muted font-normal text-xs mx-1">TO</span> ${booking.end_date}
+                                </div>
+                             </div>
+                        </div>
+
+                        <!-- Machine Info -->
+                        <div class="p-4 bg-white rounded-lg border border-gray-200">
+                            <div class="flex items-center gap-2 mb-3">
+                                 <i class="fa-solid fa-tractor text-primary"></i>
+                                 <span class="font-bold text-gray-700 text-sm uppercase">Machine Selection</span>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-primary mb-1">${booking.machine_details ? booking.machine_details.machine_name : 'N/A'}</div>
+                                <div class="flex justify-between items-end">
+                                    <span class="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600 font-mono">${booking.machine_details ? booking.machine_details.machine_code : ''}</span>
+                                    <div class="text-right">
+                                        <div class="text-xs text-muted">Field Area</div>
+                                        <div class="font-bold text-gray-800">${booking.field_area || '-'} <span class="text-xs font-normal text-muted">Acres</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                         <div class="text-xs text-muted font-semibold uppercase tracking-wider mb-1">Purpose / Notes</div>
+                         <p class="text-sm text-gray-700 italic">${booking.purpose || 'No purpose specified.'}</p>
+                    </div>
+
+                    ${booking.rejection_reason ? `
+                    <div class="p-3 bg-red-50 text-danger border border-red-100 rounded flex items-start gap-3">
+                        <i class="fa-solid fa-circle-exclamation mt-1"></i>
+                        <div>
+                            <label class="text-sm font-bold block">Rejection/Cancellation Reason</label>
+                            <p class="text-sm opacity-90">${booking.rejection_reason}</p>
+                        </div>
+                    </div>` : ''}
+                </div>
+            `;
+
+            const actionsDiv = document.getElementById('booking-actions');
+            let buttons = '';
+
+            if (booking.status === 'Pending') {
+                buttons = `
+                    <button class="btn btn-primary bg-success" onclick="updateBookingStatus('${booking.id}', 'approve')">Approve</button>
+                    <button class="btn btn-primary bg-danger" onclick="updateBookingStatus('${booking.id}', 'reject')">Reject</button>
+                `;
+            } else if (booking.status === 'Approved') {
+                buttons = `
+                    <button class="btn btn-primary" onclick="updateBookingStatus('${booking.id}', 'handover')">Handover Machine</button>
+                    <button class="btn btn-secondary text-danger" onclick="updateBookingStatus('${booking.id}', 'cancel')">Cancel Booking</button>
+                `;
+            } else if (booking.status === 'Active') {
+                buttons = `
+                    <button class="btn btn-primary bg-success" onclick="updateBookingStatus('${booking.id}', 'complete')">Mark Completed</button>
+                `;
+            } else {
+                 buttons = `<button class="btn btn-secondary" onclick="UI.hideModal('booking-details-modal')">Close</button>`;
+            }
+
+            actionsDiv.innerHTML = buttons;
+            UI.showModal('booking-details-modal');
+        }
+
+        async function viewMachineDetails(id) {
+            // Ideally fetch fresh details + usage stats
+            // For now use cached object
+            const machine = currentMachines.find(m => m.id == id);
+            if (!machine) return;
+
+            document.getElementById('machine-modal-title').textContent = machine.machine_name;
+            
+            // Overview Tab
+            document.getElementById('machine-tab-overview').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                        <div class="text-xs text-muted font-semibold uppercase tracking-wider mb-1">Make & Model</div>
+                        <div class="font-bold text-lg text-gray-800">${machine.machine_name}</div>
+                        <div class="text-sm text-gray-600">${machine.machine_type}</div>
+                    </div>
+                     <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-between">
+                         <div>
+                            <div class="text-xs text-muted font-semibold uppercase tracking-wider mb-1">Status</div>
+                            <div><span class="badge ${machine.status === 'Available' ? 'badge-success' : 'badge-warning'} text-sm">${machine.status}</span></div>
+                         </div>
+                         <i class="fa-solid fa-circle-info text-gray-300 text-2xl"></i>
+                    </div>
+                     <div class="p-4 bg-white rounded-lg border border-gray-200">
+                         <div class="flex items-center gap-3 mb-2">
+                             <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-primary"><i class="fa-solid fa-barcode"></i></div>
+                             <div class="text-sm font-semibold text-gray-700">Detailed Info</div>
+                         </div>
+                         <div class="grid grid-cols-2 gap-y-2 text-sm">
+                             <span class="text-muted">Machine Code:</span> <span class="font-mono text-right">${machine.machine_code}</span>
+                             <span class="text-muted">Purchase Year:</span> <span class="text-right">${machine.purchase_year}</span>
+                             <span class="text-muted">Last Service:</span> <span class="text-right">${machine.last_serviced_date || 'N/A'}</span>
+                         </div>
+                    </div>
+                     <div class="p-4 bg-white rounded-lg border border-gray-200">
+                         <div class="flex items-center gap-3 mb-2">
+                             <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-success"><i class="fa-solid fa-chart-line"></i></div>
+                             <div class="text-sm font-semibold text-gray-700">Usage Stats</div>
+                         </div>
+                          <div class="flex flex-col gap-1">
+                             <span class="text-3xl font-bold text-gray-800">${machine.total_hours_used || 0}<span class="text-sm font-normal text-muted ml-1">hrs</span></span>
+                             <span class="text-xs text-muted">Total operational hours</span>
+                         </div>
+                    </div>
+                </div>
+            `;
+            
+            // Mock Usage/Maintenance for demo until endpoints ready
+            document.getElementById('machine-usage-list').innerHTML = '<p class="text-muted italic p-4">No recent usage usage history.</p>';
+            document.getElementById('machine-maintenance-list').innerHTML = '<p class="text-muted italic p-4">No maintenance records found.</p>';
+
+            switchTab('overview');
+            UI.showModal('machine-details-modal');
+        }
+
+        async function updateBookingStatus(id, action) {
+            let notes = '';
+            
+            if (action === 'reject' || action === 'cancel') {
+                if (!confirm(`Are you sure you want to ${action} this booking?`)) return;
+                notes = prompt(`Enter reason for ${action}:`);
+                if (!notes && action === 'reject') return; // Enforce reason for reject
+            } else {
+                if (!confirm(`Confirm ${action} action?`)) return;
+            }
+            
+            try {
+                await API.updateBookingStatus(id, action, notes);
+                UI.showToast(`Booking ${action} successful`, 'success');
+                UI.hideModal('booking-details-modal');
+                loadBookings(); // Refresh list
+                loadDashboard(); // Refresh stats
+            } catch (err) {
+                UI.showToast(err.message || 'Action failed', 'error');
+            }
+        }
+        
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active', 'border-b-2', 'border-primary');
+            });
+            
+            // Show target
+            document.getElementById(`machine-tab-${tabName}`).classList.remove('hidden');
+            
+            // Highlight button (simple logic, assuming order)
+            const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.toLowerCase().includes(tabName.replace('usage', 'usage history')));
+            if(btn) btn.classList.add('active', 'border-b-2', 'border-primary');
         }
         
         // Initial Load

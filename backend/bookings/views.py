@@ -57,6 +57,19 @@ class CHCBookingActionView(generics.UpdateAPIView):
             booking.status = 'Rejected'
             booking.rejection_reason = notes
             booking.approved_by = request.user
+        elif action == 'handover':
+            if booking.status != 'Approved':
+                return Response({"error": "Only approved bookings can be handed over."}, status=status.HTTP_400_BAD_REQUEST)
+            booking.status = 'Active'
+            # Could set actual_start_time here
+        elif action == 'complete':
+            if booking.status != 'Active':
+                 return Response({"error": "Only active bookings can be completed."}, status=status.HTTP_400_BAD_REQUEST)
+            booking.status = 'Completed'
+            # Could set actual_end_time here
+        elif action == 'cancel':
+            booking.status = 'Cancelled'
+            booking.rejection_reason = notes # Reuse for cancellation reason
         else:
             return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         
