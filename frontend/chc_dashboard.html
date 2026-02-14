@@ -144,12 +144,91 @@
                 loadMachines();
             } else if (viewName === 'bookings') {
                 document.getElementById('page-title').textContent = 'Booking Requests';
-                loadBookings(); // To be implemented in API if endpoint exists, simplifying for now
+                loadBookings(); 
             }
         }
 
-        // Mocking extra loaders for now as they weren't strictly in the initial API plan
-        // But requested in the second prompt
+        async function loadBookings() {
+            const tbody = document.getElementById('bookings-table-body');
+            tbody.innerHTML = '<tr><td class="p-4">Loading...</td></tr>';
+            try {
+                // Fetch bookings (API handles CHC filtering based on user)
+                const bookings = await API.getCHCBookings(); 
+                tbody.innerHTML = '';
+                
+                if (bookings.length === 0) {
+                    tbody.innerHTML = '<tr><td class="p-4" colspan="5">No booking requests found.</td></tr>';
+                    return;
+                }
+
+                bookings.forEach(b => {
+                    const tr = document.createElement('tr');
+                    let actions = '';
+                    if (b.status === 'Pending') {
+                        actions = `
+                            <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: var(--success);" onclick="updateBookingStatus('${b.id}', 'approve')">Approve</button>
+                            <button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: var(--danger);" onclick="updateBookingStatus('${b.id}', 'reject')">Reject</button>
+                        `;
+                    } else {
+                        actions = `<span class="text-muted">-</span>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td class="p-4">
+                            <div class="font-bold">${b.farmer_name}</div>
+                            <div class="text-sm text-muted">${b.farmer_contact}</div>
+                        </td>
+                        <td class="p-4">
+                            <div>${b.machine_details ? b.machine_details.machine_name : 'N/A'}</div>
+                            <small>${b.machine_details ? b.machine_details.machine_code : ''}</small>
+                        </td>
+                        <td class="p-4">
+                            <div>${b.start_date} to</div>
+                            <div>${b.end_date}</div>
+                        </td>
+                        <td class="p-4"><span class="badge ${getStatusClass(b.status)}">${b.status}</span></td>
+                        <td class="p-4 flex gap-2">
+                            ${actions}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td class="p-4 text-danger">Error loading bookings</td></tr>';
+            }
+        }
+
+        async function updateBookingStatus(id, action) {
+            if (!confirm(`Are you sure you want to ${action} this booking?`)) return;
+            
+            try {
+                // Prompt for notes if rejecting
+                let notes = '';
+                if (action === 'reject') {
+                    notes = prompt("Enter rejection reason:");
+                    if (!notes) return; 
+                }
+
+                await API.updateBookingStatus(id, action, notes);
+                UI.showToast(`Booking ${action}ed successfully`, 'success');
+                loadBookings(); // Refresh list
+                loadDashboard(); // Refresh stats
+            } catch (err) {
+                UI.showToast(err.message || 'Action failed', 'error');
+            }
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Pending': return 'bg-warning text-warning-content'; // Need to define utility or style
+                case 'Approved': return 'bg-success text-white';
+                case 'Rejected': return 'bg-danger text-white';
+                case 'Completed': return 'bg-primary text-white';
+                default: return 'bg-gray-200';
+            }
+        }
+
         async function loadMachines() {
             const tbody = document.getElementById('machines-table-body');
             tbody.innerHTML = '<tr><td class="p-4">Loading...</td></tr>';

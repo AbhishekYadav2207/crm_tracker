@@ -12,7 +12,8 @@ class PublicBookingCreateView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def perform_create(self, serializer):
-        booking = serializer.save(status='Pending')
+        machine = serializer.validated_data['machine']
+        serializer.save(status='Pending', chc=machine.chc)
         # Here we should convert BookingCreateSerializer to BookingSerializer for response if needed
         # Or trigger notifications
 

@@ -36,11 +36,11 @@
                 Streamlining agriculture with technology.
             </p>
             <div class="flex justify-center gap-4">
-                <button class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="UI.showModal('booking-modal')">
+                <button class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="document.getElementById('search-section').scrollIntoView({behavior: 'smooth'})">
                     <i class="fa-solid fa-calendar-check" style="margin-right: 0.5rem;"></i> Book a Machine
                 </button>
-                <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="document.getElementById('search-section').scrollIntoView({behavior: 'smooth'})">
-                    <i class="fa-solid fa-magnifying-glass" style="margin-right: 0.5rem;"></i> Find CHC
+                <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="location.href='index.html#how-it-works'">
+                    <i class="fa-solid fa-circle-info" style="margin-right: 0.5rem;"></i> How it Works
                 </button>
             </div>
         </div>
@@ -144,7 +144,16 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
+    <!-- Machine List Modal -->
+    <div id="machine-list-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px;">
+            <button class="close-modal" onclick="UI.hideModal('machine-list-modal')">&times;</button>
+            <h2 class="text-center" id="chc-title">Machines Available</h2>
+            <div id="machine-list-container" class="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                <!-- Machines injected here -->
+            </div>
+        </div>
+    </div>
     <div id="toast-container" class="toast-container"></div>
 
     <script src="js/ui.js"></script>
@@ -152,24 +161,72 @@
     <script>
         // Init Logic
         document.addEventListener('DOMContentLoaded', async () => {
-            // Load machines for booking form
-            try {
-                const machines = await API.getMachines(true); // Public view
-                const select = document.getElementById('machine-select');
-                select.innerHTML = '<option value="">Select a Machine...</option>';
-                if(machines) {
-                    machines.forEach(m => {
-                        const opt = document.createElement('option');
-                        opt.value = m.id;
-                        opt.textContent = `${m.machine_name} (${m.machine_type}) - ${m.status}`;
-                        select.appendChild(opt);
-                    });
-                }
-            } catch (err) {
-                console.error("Failed to load machines", err);
-            }
+             // Machines are now loaded per CHC
         });
 
+        // Machine View Logic
+        async function viewMachines(chcId, chcName) {
+            const container = document.getElementById('machine-list-container');
+            const title = document.getElementById('chc-title');
+            
+            title.textContent = `Machines at ${chcName}`;
+            container.innerHTML = '<p class="text-center w-full">Loading machines...</p>';
+            
+            UI.showModal('machine-list-modal');
+            
+            try {
+                const machines = await API.getMachines(true, chcId);
+                container.innerHTML = '';
+                
+                if (!machines || machines.length === 0) {
+                    container.innerHTML = '<p class="text-center w-full text-muted">No machines available at this center.</p>';
+                    return;
+                }
+
+                machines.forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'glass-panel p-4 flex flex-col justify-between';
+                    card.style.borderLeft = m.status === 'Idle' ? '4px solid var(--success)' : '4px solid var(--accent)';
+                    
+                    card.innerHTML = `
+                        <div>
+                            <h4 class="font-bold text-lg">${m.machine_name}</h4>
+                            <p class="text-sm text-muted">${m.machine_type}</p>
+                            <span class="badge ${m.status === 'Idle' ? 'bg-success-light text-success' : 'bg-warning-light text-warning'}" 
+                                  style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-top: 0.5rem;">
+                                ${m.status}
+                            </span>
+                        </div>
+                        <button class="btn btn-primary w-full mt-4" 
+                                onclick='openBookingModal(${JSON.stringify(m)})'
+                                ${m.status !== 'Idle' ? 'disabled style="opacity: 0.6; cursor: not-allowed;"' : ''}>
+                            ${m.status === 'Idle' ? 'Book Now' : 'Unavailable'}
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="text-center w-full text-danger">Failed to load machines.</p>';
+            }
+        }
+
+        function openBookingModal(machine) {
+            UI.hideModal('machine-list-modal');
+            UI.showModal('booking-modal');
+            
+            // Pre-fill machine select
+            const select = document.getElementById('machine-select');
+            select.innerHTML = ''; // Clear existing
+            const opt = document.createElement('option');
+            opt.value = machine.id;
+            opt.textContent = `${machine.machine_name} (${machine.machine_type})`;
+            opt.selected = true;
+            select.appendChild(opt);
+            
+            // Maybe add a hidden title or update modal title
+            // document.querySelector('#booking-modal h2').textContent = `Book ${machine.machine_name}`;
+        }
         // Search Handlers
         async function searchCHCs() {
             const query = document.getElementById('search-query').value;
@@ -194,7 +251,10 @@
                         <h3 class="text-primary">${chc.chc_name}</h3>
                         <p><i class="fa-solid fa-location-dot"></i> ${chc.location}, ${chc.district}</p>
                         <p class="text-muted text-sm mt-2">Manager: ${chc.admin_name}</p>
-                        <button class="btn btn-secondary w-full mt-4" onclick="UI.showToast('Call ${chc.phone_no} for details')">Contact</button>
+                        <div class="flex gap-2 mt-4">
+                            <button class="btn btn-primary w-full" onclick="viewMachines(${chc.id}, '${chc.chc_name}')">View Machines</button>
+                            <button class="btn btn-secondary w-full" onclick="UI.showToast('Call ${chc.phone_no} for details')">Contact</button>
+                        </div>
                     `;
                     resultsDiv.appendChild(card);
                 });

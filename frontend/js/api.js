@@ -89,8 +89,11 @@ class API {
     }
 
     // Machines
-    static async getMachines(publicView = false) {
-        const endpoint = publicView ? '/machines/public/' : '/machines/';
+    static async getMachines(publicView = false, chcId = null) {
+        let endpoint = publicView ? '/machines/public/' : '/machines/';
+        if (chcId) {
+            endpoint += `?chc=${chcId}`;
+        }
         return await this.request(endpoint, 'GET', null, !publicView);
     }
 
@@ -104,5 +107,14 @@ class API {
         // Construct query string
         const params = new URLSearchParams(query).toString();
         return await this.request(`/chc/public/search/?${params}`, 'GET', null, false);
+    }
+
+    // CHC Admin Bookings
+    static async getCHCBookings() {
+        return await this.request('/bookings/chc/', 'GET', null, true);
+    }
+
+    static async updateBookingStatus(id, action, notes = '') {
+        return await this.request(`/bookings/chc/${id}/action/`, 'PUT', { action, notes }, true);
     }
 }
