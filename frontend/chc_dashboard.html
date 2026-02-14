@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHC Dashboard - CRM Tracker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-tractor"></i> CHC Admin
+            </div>
+            <nav class="flex flex-col gap-2">
+                <a href="#" class="nav-item active" onclick="loadView('dashboard')"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="#" class="nav-item" onclick="loadView('machines')"><i class="fa-solid fa-gears"></i> My Machines</a>
+                <a href="#" class="nav-item" onclick="loadView('bookings')"><i class="fa-solid fa-calendar-days"></i> Bookings</a>
+                <a href="#" class="nav-item" onclick="API.logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="flex justify-between items-center mb-8">
+                <h2 id="page-title">Dashboard Overview</h2>
+                <div class="flex items-center gap-4">
+                    <span id="user-name" class="font-bold">Welcome, Admin</span>
+                </div>
+            </header>
+
+            <!-- Views Container -->
+            <div id="view-container">
+                <!-- Dashboard View (Default) -->
+                <div id="dashboard-view" class="view-section">
+                    <div class="flex gap-4 lg:grid-cols-4 grid grid-cols-1 md:grid-cols-2">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Machines</div>
+                            <div class="stat-value" id="stat-total-machines">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Available</div>
+                            <div class="stat-value text-success" id="stat-available">-</div> <!-- text-success custom class needed? -->
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">In Use</div>
+                            <div class="stat-value text-warning" id="stat-in-use">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Pending Bookings</div>
+                            <div class="stat-value text-danger" id="stat-pending">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Machines View -->
+                <div id="machines-view" class="view-section hidden">
+                   <div class="flex justify-between mb-4">
+                       <h3>Inventory</h3>
+                       <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Machine</button>
+                   </div>
+                   <div class="glass-panel p-4 overflow-x-auto">
+                       <table class="w-full text-left" style="border-collapse: collapse;">
+                           <thead>
+                               <tr style="border-bottom: 1px solid var(--border);">
+                                   <th class="p-4">Name</th>
+                                   <th class="p-4">Type</th>
+                                   <th class="p-4">Status</th>
+                                   <th class="p-4">Actions</th>
+                               </tr>
+                           </thead>
+                           <tbody id="machines-table-body">
+                               <!-- Rows injected here -->
+                           </tbody>
+                       </table>
+                   </div>
+                </div>
+
+                 <!-- Bookings View -->
+                 <div id="bookings-view" class="view-section hidden">
+                    <h3>Incoming Requests</h3>
+                    <div class="glass-panel p-4 overflow-x-auto mt-4">
+                        <table class="w-full text-left" style="border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border);">
+                                    <th class="p-4">Farmer</th>
+                                    <th class="p-4">Machine</th>
+                                    <th class="p-4">Dates</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookings-table-body">
+                                <!-- Rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                 </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Check Auth
+        if (!localStorage.getItem('access_token')) {
+            window.location.href = 'index.html';
+        }
+
+        // Load Dashboard Data
+        async function loadDashboard() {
+            try {
+                const stats = await API.getCHCDashboard();
+                document.getElementById('stat-total-machines').textContent = stats.total_machines;
+                document.getElementById('stat-available').textContent = stats.machines_available;
+                document.getElementById('stat-in-use').textContent = stats.machines_in_use;
+                document.getElementById('stat-pending').textContent = stats.pending_bookings;
+            } catch (err) {
+                console.error(err);
+                UI.showToast('Failed to load dashboard data', 'error');
+            }
+        }
+
+        // View Switcher logic
+        function loadView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            // Activate View
+            document.getElementById(`${viewName}-view`).classList.remove('hidden');
+            
+            // Logic for specific views
+            if (viewName === 'dashboard') {
+                document.getElementById('page-title').textContent = 'Dashboard Overview';
+                loadDashboard();
+            } else if (viewName === 'machines') {
+                document.getElementById('page-title').textContent = 'Machine Management';
+                loadMachines();
+            } else if (viewName === 'bookings') {
+                document.getElementById('page-title').textContent = 'Booking Requests';
+                loadBookings(); // To be implemented in API if endpoint exists, simplifying for now
+            }
+        }
+
+        // Mocking extra loaders for now as they weren't strictly in the initial API plan
+        // But requested in the second prompt
+        async function loadMachines() {
+            const tbody = document.getElementById('machines-table-body');
+            tbody.innerHTML = '<tr><td class="p-4">Loading...</td></tr>';
+            try {
+                // Determine user's CHC ID somehow or use the CHC specific endpoint
+                // The API plan says GET /api/v1/machines/ returns list for CHC admin
+                const machines = await API.getMachines(false); 
+                tbody.innerHTML = '';
+                machines.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-4">${m.machine_name}</td>
+                        <td class="p-4">${m.machine_type}</td>
+                        <td class="p-4"><span class="badge">${m.status}</span></td>
+                        <td class="p-4">
+                            <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Edit</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) {
+                tbody.innerHTML = '<tr><td class="p-4 text-red-500">Error loading machines</td></tr>';
+            }
+        }
+        
+        // Initial Load
+        loadDashboard();
+
+    </script>
+</body>
+</html>

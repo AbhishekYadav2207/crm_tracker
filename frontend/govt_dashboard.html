@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Govt Dashboard - CRM Analytics</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-landmark"></i> Govt Admin
+            </div>
+            <nav class="flex flex-col gap-2">
+                <a href="#" class="nav-item active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-building"></i> All CHCs</a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-file-invoice"></i> Reports</a>
+                <a href="#" class="nav-item" onclick="API.logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="flex justify-between items-center mb-8">
+                <h2>National CRM Analytics</h2>
+                <div class="flex items-center gap-4">
+                    <button class="btn btn-primary"><i class="fa-solid fa-download"></i> Export Report</button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="stat-card">
+                   <div class="stat-label">Total Residue Managed</div>
+                   <div class="stat-value" id="stat-residue">0 Tons</div>
+                </div>
+                <div class="stat-card">
+                   <div class="stat-label">Total Area Covered</div>
+                   <div class="stat-value" id="stat-area">0 Acres</div>
+                </div>
+                <div class="stat-card">
+                   <div class="stat-label">Total Usage Hours</div>
+                   <div class="stat-value" id="stat-hours">0 Hrs</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-panel p-4">
+                    <h3>Machine Utilization by Type</h3>
+                    <canvas id="machineChart"></canvas>
+                </div>
+                <div class="glass-panel p-4">
+                    <h3>Impact Overview</h3>
+                    <canvas id="impactChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-4 mt-8">
+                 <h3>Active CHCs</h3>
+                 <div class="stat-value" id="stat-chcs">0</div>
+                 <p class="text-muted">Centers currently operating across the region.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        // Check Auth
+        if (!localStorage.getItem('access_token')) {
+            window.location.href = 'index.html';
+        }
+
+        async function loadGovtStats() {
+            try {
+                const stats = await API.getGovtDashboard();
+                
+                // Update Text Stats
+                document.getElementById('stat-residue').textContent = `${stats.total_residue_managed} Tons`;
+                document.getElementById('stat-area').textContent = `${stats.total_area_covered} Acres`;
+                document.getElementById('stat-hours').textContent = `${stats.total_usage_hours} Hrs`;
+                document.getElementById('stat-chcs').textContent = stats.total_chcs;
+
+                // Render Charts
+                renderCharts(stats);
+
+            } catch (err) {
+                console.error(err);
+                UI.showToast('Failed to load analytics', 'error');
+            }
+        }
+
+        function renderCharts(stats) {
+            // Machine Chart
+            const ctx1 = document.getElementById('machineChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Machines Active', 'Machines Idle', 'Maintenance'],
+                    datasets: [{
+                        data: [stats.total_bookings, stats.total_machines - stats.total_bookings, 5], // Mock breakdown for now
+                        backgroundColor: ['#2563eb', '#cbd5e1', '#f59e0b']
+                    }]
+                }
+            });
+
+            // Impact Chart
+            const ctx2 = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Residue (Tons)', 'Area (Acres)', 'Hours'],
+                    datasets: [{
+                        label: 'Metrics',
+                        data: [stats.total_residue_managed, stats.total_area_covered, stats.total_usage_hours],
+                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        loadGovtStats();
+    </script>
+</body>
+</html>
