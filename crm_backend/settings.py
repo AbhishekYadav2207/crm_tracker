@@ -65,9 +65,12 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'crm_backend.middleware.SessionTimeoutMiddleware',
 ]
+
 
 ROOT_URLCONF = 'crm_backend.urls'
 
@@ -133,6 +136,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# Session Settings
+SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

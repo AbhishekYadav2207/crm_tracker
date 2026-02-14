@@ -50,12 +50,18 @@ class CHCDashboardView(APIView):
             "active_bookings": bookings.filter(status='Active').count(),
         })
 
+
 class MachineAnalyticsView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        # Role check
+        if request.user.role not in ['GOVT_ADMIN', 'CHC_ADMIN']:
+             return Response({"error": "Unauthorized"}, status=403)
+
         # Detailed stats about machines
         machine_types = Machine.objects.values('machine_type').annotate(count=Count('id'))
+
         status_breakdown = Machine.objects.values('status').annotate(count=Count('id'))
         
         return Response({
