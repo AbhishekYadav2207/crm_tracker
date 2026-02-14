@@ -16,7 +16,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
-    queryset = User.objects.all()
+    # queryset = User.objects.all() # Unnecessary as we override get_object
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
 

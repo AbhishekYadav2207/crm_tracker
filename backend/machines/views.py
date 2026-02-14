@@ -5,7 +5,7 @@ from .serializers import MachineSerializer
 from rest_framework.exceptions import PermissionDenied
 
 class PublicMachineListView(generics.ListAPIView):
-    queryset = Machine.objects.all()
+    queryset = Machine.objects.select_related('chc').all()
     serializer_class = MachineSerializer
     permission_classes = (permissions.AllowAny,)
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -24,9 +24,9 @@ class CHCMachineListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         if user.role == 'CHC_ADMIN' and user.chc:
-            return Machine.objects.filter(chc=user.chc)
+            return Machine.objects.select_related('chc').filter(chc=user.chc)
         elif user.role == 'GOVT_ADMIN':
-            return Machine.objects.all()
+            return Machine.objects.select_related('chc').all()
         return Machine.objects.none()
 
     def perform_create(self, serializer):

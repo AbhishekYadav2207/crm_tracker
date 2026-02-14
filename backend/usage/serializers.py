@@ -5,7 +5,7 @@ class MachineUsageSerializer(serializers.ModelSerializer):
     class Meta:
         model = MachineUsage
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'total_hours_used')
+        read_only_fields = ('created_at', 'updated_at', 'total_hours_used', 'chc')
 
     def validate(self, data):
         # Additional validations if needed

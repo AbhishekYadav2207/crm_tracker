@@ -197,11 +197,11 @@
                                 ${m.status}
                             </span>
                         </div>
-                        <button class="btn btn-primary w-full mt-4" 
-                                onclick='openBookingModal(${JSON.stringify(m)})'
-                                ${m.status !== 'Idle' ? 'disabled style="opacity: 0.6; cursor: not-allowed;"' : ''}>
-                            ${m.status === 'Idle' ? 'Book Now' : 'Unavailable'}
-                        </button>
+        <button class="btn btn-primary w-full mt-4" 
+                onclick='openBookingModal(${JSON.stringify(m)})'>
+            Book Now
+        </button>
+        ${m.status !== 'Idle' ? '<p class="text-xs text-muted text-center mt-2">Available for future booking</p>' : ''}
                     `;
                     container.appendChild(card);
                 });

@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 class Booking(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
@@ -9,7 +11,8 @@ class Booking(models.Model):
         ('Completed', 'Completed'),
         ('Cancelled', 'Cancelled'),
     )
-
+    
+    booking_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     chc = models.ForeignKey('chc.CHC', on_delete=models.CASCADE, related_name='bookings')
     machine = models.ForeignKey('machines.Machine', on_delete=models.CASCADE, related_name='bookings')
     

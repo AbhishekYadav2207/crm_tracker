@@ -34,10 +34,22 @@ class MachineUsage(models.Model):
 
     def save(self, *args, **kwargs):
         # Auto-calculate hours if start/end time provided
-        if self.start_time and self.end_time:
-            # Simple calculation assuming same day usage for now, or handle date diff if needed
-            # For simplicity, let's trust the input or doing simple calculation
-            pass # Logic to be added in serializers or manually calculated
+        if self.start_time and self.end_time and self.total_hours_used is None:
+            import datetime
+            # Simple calculation assuming same day usage
+            dummy_date = datetime.date(2000, 1, 1)
+            start = datetime.datetime.combine(dummy_date, self.start_time)
+            end = datetime.datetime.combine(dummy_date, self.end_time)
+            
+            # Handle potential cross-midnight if needed, but for now assume same day as per plan
+            if end < start:
+                 # Assume next day
+                 end += datetime.timedelta(days=1)
+            
+            duration = end - start
+            hours = duration.total_seconds() / 3600
+            self.total_hours_used = round(hours, 2)
+            
         super().save(*args, **kwargs)
 
     def __str__(self):

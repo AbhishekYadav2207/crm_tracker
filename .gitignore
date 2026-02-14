@@ -29,3 +29,7 @@ venv.bak/
 # OS
 .DS_Store
 Thumbs.db
+
+migrations/
+/migrations/
+migrations/*

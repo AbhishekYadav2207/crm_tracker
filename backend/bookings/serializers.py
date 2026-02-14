@@ -15,7 +15,8 @@ class BookingSerializer(serializers.ModelSerializer):
 class BookingCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ('id', 'machine', 'start_date', 'end_date', 'farmer_name', 'farmer_contact', 'farmer_email', 'farmer_aadhar', 'purpose', 'field_area')
+        fields = ('id', 'booking_id', 'machine', 'start_date', 'end_date', 'farmer_name', 'farmer_contact', 'farmer_email', 'farmer_aadhar', 'purpose', 'field_area')
+        read_only_fields = ('id', 'booking_id')
 
     def validate(self, data):
         if data['start_date'] > data['end_date']:

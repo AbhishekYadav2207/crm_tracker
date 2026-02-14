@@ -40,6 +40,21 @@ class Machine(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Idle')
     chc = models.ForeignKey('chc.CHC', on_delete=models.CASCADE, related_name='machines')
     
+    def save(self, *args, **kwargs):
+        if not self.machine_code:
+            # Generate a simple code: CHC_ID-TYPE-COUNT
+            # We need to save first to get ID if we want global ID, but we want CHC specific count
+            count = Machine.objects.filter(chc=self.chc).count() + 1
+            type_code = self.machine_type[:3].upper()
+            self.machine_code = f"{self.chc.id}-{type_code}-{count}"
+            
+            # Ensure uniqueness loop just in case
+            while Machine.objects.filter(machine_code=self.machine_code).exists():
+                count += 1
+                self.machine_code = f"{self.chc.id}-{type_code}-{count}"
+                
+        super().save(*args, **kwargs)
+    
     total_hours_used = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     last_used_date = models.DateTimeField(null=True, blank=True)
     last_serviced_date = models.DateField(null=True, blank=True)

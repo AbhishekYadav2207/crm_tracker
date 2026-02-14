@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, filters
+from rest_framework import generics, permissions, filters, serializers
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Booking
 from .serializers import BookingSerializer, BookingCreateSerializer
@@ -13,6 +13,20 @@ class PublicBookingCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         machine = serializer.validated_data['machine']
+        start_date = serializer.validated_data['start_date']
+        end_date = serializer.validated_data['end_date']
+        
+        # Availability Check
+        overlapping_bookings = Booking.objects.filter(
+            machine=machine,
+            status__in=['Pending', 'Approved', 'Active'],
+            start_date__lte=end_date,
+            end_date__gte=start_date
+        )
+        
+        if overlapping_bookings.exists():
+             raise serializers.ValidationError("Machine is not available for the selected dates.")
+
         serializer.save(status='Pending', chc=machine.chc)
         # Here we should convert BookingCreateSerializer to BookingSerializer for response if needed
         # Or trigger notifications
@@ -21,7 +35,7 @@ class PublicBookingStatusView(generics.RetrieveAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     permission_classes = (permissions.AllowAny,)
-    lookup_field = 'booking_id' # Assuming we expose internal ID or add a UUID field
+    lookup_field = 'booking_id'
 
 class CHCBookingListView(generics.ListAPIView):
     serializer_class = BookingSerializer
@@ -61,11 +75,15 @@ class CHCBookingActionView(generics.UpdateAPIView):
             if booking.status != 'Approved':
                 return Response({"error": "Only approved bookings can be handed over."}, status=status.HTTP_400_BAD_REQUEST)
             booking.status = 'Active'
+            booking.machine.status = 'In Use'
+            booking.machine.save()
             # Could set actual_start_time here
         elif action == 'complete':
             if booking.status != 'Active':
                  return Response({"error": "Only active bookings can be completed."}, status=status.HTTP_400_BAD_REQUEST)
             booking.status = 'Completed'
+            booking.machine.status = 'Idle'
+            booking.machine.save()
             # Could set actual_end_time here
         elif action == 'cancel':
             booking.status = 'Cancelled'

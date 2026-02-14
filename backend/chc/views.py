@@ -3,6 +3,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import CHC
 from .serializers import CHCSerializer
 
+class IsGovtAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'GOVT_ADMIN'
+
 class PublicCHCSearchView(generics.ListAPIView):
     queryset = CHC.objects.filter(is_active=True)
     serializer_class = CHCSerializer
@@ -14,8 +18,12 @@ class PublicCHCSearchView(generics.ListAPIView):
 class CHCListCreateView(generics.ListCreateAPIView):
     queryset = CHC.objects.all()
     serializer_class = CHCSerializer
-    # Permission logic to be refined: Only SuperAdmin or Govt Admin can create
-    permission_classes = (permissions.IsAuthenticated,) 
+    
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            # Only GOVT_ADMIN can create CHC
+            return [permissions.IsAuthenticated(), IsGovtAdmin()]
+        return [permissions.IsAuthenticated()] 
 
 class CHCDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CHC.objects.all()
