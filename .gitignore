@@ -33,3 +33,5 @@ Thumbs.db
 migrations/
 /migrations/
 migrations/*
+
+/exported_data/
