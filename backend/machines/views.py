@@ -23,6 +23,8 @@ class CHCMachineListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return Machine.objects.none()
         if user.role == 'CHC_ADMIN' and user.chc:
             return Machine.objects.select_related('chc').filter(chc=user.chc)
         elif user.role == 'GOVT_ADMIN':
@@ -42,6 +44,8 @@ class CHCMachineDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return Machine.objects.none()
         if user.role == 'CHC_ADMIN' and user.chc:
             return Machine.objects.filter(chc=user.chc)
         return Machine.objects.none()

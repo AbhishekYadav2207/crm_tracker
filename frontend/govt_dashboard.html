@@ -7,12 +7,10 @@
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="dashboard-layout">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fa-solid fa-landmark"></i> Govt Admin
@@ -25,16 +23,15 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="flex justify-between items-center mb-8">
                 <h2>National CRM Analytics</h2>
                 <div class="flex items-center gap-4">
-                    <button class="btn btn-primary"><i class="fa-solid fa-download"></i> Export Report</button>
+                    <!-- Placeholder: Export button disabled until implemented -->
+                    <button class="btn btn-primary" onclick="UI.showToast('Export feature coming soon', 'info')"><i class="fa-solid fa-download"></i> Export Report</button>
                 </div>
             </header>
 
-            <!-- Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div class="stat-card">
                    <div class="stat-label">Total Residue Managed</div>
@@ -50,7 +47,6 @@
                 </div>
             </div>
 
-            <!-- Charts Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="glass-panel p-4">
                     <h3>Machine Utilization by Type</h3>
@@ -67,7 +63,6 @@
                  <div class="stat-value" id="stat-chcs">0</div>
                  <p class="text-muted">Centers currently operating across the region.</p>
             </div>
-
         </main>
     </div>
 
@@ -76,24 +71,22 @@
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script>
-        // Check Auth
         if (!localStorage.getItem('access_token')) {
             window.location.href = 'index.html';
         }
+
+        let machineChart, impactChart;
 
         async function loadGovtStats() {
             try {
                 const stats = await API.getGovtDashboard();
                 
-                // Update Text Stats
                 document.getElementById('stat-residue').textContent = `${stats.total_residue_managed} Tons`;
                 document.getElementById('stat-area').textContent = `${stats.total_area_covered} Acres`;
                 document.getElementById('stat-hours').textContent = `${stats.total_usage_hours} Hrs`;
                 document.getElementById('stat-chcs').textContent = stats.total_chcs;
 
-                // Render Charts
                 renderCharts(stats);
-
             } catch (err) {
                 console.error(err);
                 UI.showToast('Failed to load analytics', 'error');
@@ -101,22 +94,29 @@
         }
 
         function renderCharts(stats) {
-            // Machine Chart
+            // Destroy previous charts if they exist
+            if (machineChart) machineChart.destroy();
+            if (impactChart) impactChart.destroy();
+
             const ctx1 = document.getElementById('machineChart').getContext('2d');
-            new Chart(ctx1, {
+            // Use real data if available, else fallback
+            const active = stats.machines_active || stats.total_bookings || 0;
+            const idle = (stats.total_machines - active) || 0;
+            const maintenance = stats.machines_under_maintenance || 0; // if endpoint provides
+
+            machineChart = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Machines Active', 'Machines Idle', 'Maintenance'],
+                    labels: ['Active', 'Idle', 'Maintenance'],
                     datasets: [{
-                        data: [stats.total_bookings, stats.total_machines - stats.total_bookings, 5], // Mock breakdown for now
+                        data: [active, idle, maintenance],
                         backgroundColor: ['#2563eb', '#cbd5e1', '#f59e0b']
                     }]
                 }
             });
 
-            // Impact Chart
             const ctx2 = document.getElementById('impactChart').getContext('2d');
-            new Chart(ctx2, {
+            impactChart = new Chart(ctx2, {
                 type: 'bar',
                 data: {
                     labels: ['Residue (Tons)', 'Area (Acres)', 'Hours'],
@@ -127,9 +127,7 @@
                     }]
                 },
                 options: {
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
+                    scales: { y: { beginAtZero: true } }
                 }
             });
         }

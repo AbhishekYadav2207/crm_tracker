@@ -1,24 +1,45 @@
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
 class API {
-    static getHeaders(auth = false) {
-        const headers = {
-            'Content-Type': 'application/json'
-        };
+    // No longer a static getHeaders – we build headers dynamically in request()
+    static async refreshToken() {
+        const refresh = localStorage.getItem('refresh_token');
+        if (!refresh) throw new Error('No refresh token');
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/refresh/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh })
+            });
+            if (!response.ok) throw new Error('Refresh failed');
+            const data = await response.json();
+            localStorage.setItem('access_token', data.access);
+            return data.access;
+        } catch (e) {
+            this.logout();
+            throw e;
+        }
+    }
+
+    static async request(endpoint, method = 'GET', body = null, auth = false, retry = true) {
+        const url = `${API_BASE_URL}${endpoint}`;
+        
+        // Build headers dynamically
+        const headers = {};
         if (auth) {
             const token = localStorage.getItem('access_token');
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
         }
-        return headers;
-    }
+        // Only set Content-Type if there is a body (POST, PUT, PATCH)
+        if (body) {
+            headers['Content-Type'] = 'application/json';
+        }
 
-    static async request(endpoint, method = 'GET', body = null, auth = false) {
-        const url = `${API_BASE_URL}${endpoint}`;
         const options = {
             method,
-            headers: this.getHeaders(auth),
+            headers,
         };
 
         if (body) {
@@ -28,12 +49,18 @@ class API {
         try {
             const response = await fetch(url, options);
 
-            // Handle 401 Unauthorized (Token expiry logic implies re-login for now)
-            if (response.status === 401 && auth) {
-                // Ideally refresh token here, but for simplicity redirection:
-                console.warn("Unauthorized access. Redirecting to login.");
-                this.logout();
-                return null;
+            // Handle 401 Unauthorized – attempt refresh once
+            if (response.status === 401 && auth && retry) {
+                console.warn('Access token expired, attempting refresh...');
+                try {
+                    await this.refreshToken();
+                    // Retry the original request with new token
+                    return this.request(endpoint, method, body, auth, false);
+                } catch (refreshError) {
+                    console.error('Refresh failed, logging out.', refreshError);
+                    this.logout();
+                    return null;
+                }
             }
 
             const data = await response.json();
@@ -50,7 +77,7 @@ class API {
             return data;
         } catch (error) {
             console.error(`API Error (${endpoint}):`, error);
-            throw error; // Re-throw to be handled by UI
+            throw error;
         }
     }
 
@@ -60,10 +87,15 @@ class API {
         if (data.access) {
             localStorage.setItem('access_token', data.access);
             localStorage.setItem('refresh_token', data.refresh);
-            // Fetch profile to know role
-            const profile = await this.getProfile();
-            localStorage.setItem('user_role', profile.role);
-            return profile;
+            try {
+                const profile = await this.getProfile();
+                localStorage.setItem('user_role', profile.role);
+                return profile;
+            } catch (error) {
+                // Profile fetch failed – clean up and throw
+                this.logout();
+                throw new Error('Failed to fetch user profile');
+            }
         }
     }
 
@@ -97,6 +129,11 @@ class API {
         return await this.request(endpoint, 'GET', null, !publicView);
     }
 
+    // Get single machine detail (for CHC admin)
+    static async getMachineDetail(id) {
+        return await this.request(`/machines/${id}/`, 'GET', null, true);
+    }
+
     // Bookings
     static async createBooking(data) {
         return await this.request('/bookings/public/create/', 'POST', data, false);
@@ -104,7 +141,6 @@ class API {
 
     // CHC Search
     static async searchCHCs(query) {
-        // Construct query string
         const params = new URLSearchParams(query).toString();
         return await this.request(`/chc/public/search/?${params}`, 'GET', null, false);
     }

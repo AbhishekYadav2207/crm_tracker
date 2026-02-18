@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Tracker - Advanced Machine Management</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- Navigation -->
     <nav class="glass-panel" style="position: sticky; top: 0; z-index: 40; padding: 1rem 2rem;">
         <div class="flex items-center justify-between" style="max-width: 1200px; margin: 0 auto;">
             <div class="flex items-center gap-2">
@@ -27,7 +24,6 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <header class="flex items-center justify-center p-8" style="min-height: 80vh; text-align: center; background: radial-gradient(circle at top right, #e0f2fe, #f8fafc);">
         <div style="max-width: 800px;">
             <h1 class="floating">Advanced Crop Residue Management</h1>
@@ -39,14 +35,13 @@
                 <button class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="document.getElementById('search-section').scrollIntoView({behavior: 'smooth'})">
                     <i class="fa-solid fa-calendar-check" style="margin-right: 0.5rem;"></i> Book a Machine
                 </button>
-                <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="location.href='index.html#how-it-works'">
+                <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="location.href='#how-it-works'">
                     <i class="fa-solid fa-circle-info" style="margin-right: 0.5rem;"></i> How it Works
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Search Section -->
     <section id="search-section" class="p-8" style="background: white;">
         <div style="max-width: 1200px; margin: 0 auto;">
             <h2 class="text-center mb-8">Find a Center Near You</h2>
@@ -56,17 +51,14 @@
             </div>
             
             <div id="chc-results" style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-                <!-- Results will be injected here -->
+                <!-- Results injected -->
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="p-8" style="background: var(--text-main); color: white; text-align: center;">
         <p>&copy; 2026 CRM Tracker. All rights reserved.</p>
     </footer>
-
-    <!-- Modals -->
 
     <!-- Login Modal -->
     <div id="login-modal" class="modal-overlay">
@@ -87,7 +79,7 @@
         </div>
     </div>
 
-    <!-- Booking Modal -->
+    <!-- Booking Modal (with client-side validation) -->
     <div id="booking-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 600px;">
             <button class="close-modal" onclick="UI.hideModal('booking-modal')">&times;</button>
@@ -102,11 +94,11 @@
                 <div class="flex gap-4">
                     <div class="form-group w-full">
                         <label class="form-label">Start Date</label>
-                        <input type="date" name="start_date" class="form-input" required>
+                        <input type="date" name="start_date" class="form-input" required id="start-date">
                     </div>
                     <div class="form-group w-full">
                         <label class="form-label">End Date</label>
-                        <input type="date" name="end_date" class="form-input" required>
+                        <input type="date" name="end_date" class="form-input" required id="end-date">
                     </div>
                 </div>
                 <div class="form-group">
@@ -120,10 +112,9 @@
                     </div>
                     <div class="form-group w-full">
                          <label class="form-label">Phone Number</label>
-                         <input type="tel" name="farmer_contact" class="form-input" required maxlength="10">
+                         <input type="tel" name="farmer_contact" class="form-input" required maxlength="10" pattern="[0-9]{10}" title="10-digit phone number">
                     </div>
                 </div>
-                <!-- Added Required Fields -->
                 <div class="flex gap-4">
                     <div class="form-group w-full">
                         <label class="form-label">Email</label>
@@ -131,7 +122,7 @@
                     </div>
                     <div class="form-group w-full">
                         <label class="form-label">Aadhar Number</label>
-                        <input type="text" name="farmer_aadhar" class="form-input" required maxlength="12" placeholder="12-digit number">
+                        <input type="text" name="farmer_aadhar" class="form-input" required maxlength="12" pattern="[0-9]{12}" title="12-digit Aadhar number" id="aadhar">
                     </div>
                 </div>
                 <div class="form-group">
@@ -150,7 +141,7 @@
             <button class="close-modal" onclick="UI.hideModal('machine-list-modal')">&times;</button>
             <h2 class="text-center" id="chc-title">Machines Available</h2>
             <div id="machine-list-container" class="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                <!-- Machines injected here -->
+                <!-- Machines injected -->
             </div>
         </div>
     </div>
@@ -159,12 +150,74 @@
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script>
-        // Init Logic
-        document.addEventListener('DOMContentLoaded', async () => {
-             // Machines are now loaded per CHC
+        // Client-side validation for dates and Aadhar
+        document.getElementById('booking-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const start = formData.get('start_date');
+            const end = formData.get('end_date');
+            const aadhar = formData.get('farmer_aadhar');
+            
+            if (new Date(start) > new Date(end)) {
+                UI.showToast('End date must be after start date', 'error');
+                return;
+            }
+            if (!/^\d{12}$/.test(aadhar)) {
+                UI.showToast('Aadhar must be 12 digits', 'error');
+                return;
+            }
+            
+            const data = Object.fromEntries(formData.entries());
+            try {
+                await API.createBooking(data);
+                UI.showToast('Booking submitted successfully!', 'success');
+                UI.hideModal('booking-modal');
+                e.target.reset();
+            } catch (err) {
+                UI.showToast(err.message || 'Booking failed', 'error');
+            }
         });
 
-        // Machine View Logic
+        // Search CHCs with phone number handling
+        async function searchCHCs() {
+            const query = document.getElementById('search-query').value;
+            const resultsDiv = document.getElementById('chc-results');
+            
+            resultsDiv.innerHTML = '<p class="text-center w-full">Searching...</p>';
+            
+            try {
+                const chcs = await API.searchCHCs({ search: query });
+                resultsDiv.innerHTML = '';
+                
+                if (chcs.length === 0) {
+                    resultsDiv.innerHTML = '<p class="text-center w-full">No centers found.</p>';
+                    return;
+                }
+
+                chcs.forEach(chc => {
+                    const card = document.createElement('div');
+                    card.className = 'glass-panel p-4';
+                    // Escape single quotes in chc name for onclick
+                    const safeName = chc.chc_name.replace(/'/g, "\\'");
+                    const phone = chc.phone_no || 'Not available';
+                    card.innerHTML = `
+                        <h3 class="text-primary">${chc.chc_name}</h3>
+                        <p><i class="fa-solid fa-location-dot"></i> ${chc.location}, ${chc.district}</p>
+                        <p class="text-muted text-sm mt-2">Manager: ${chc.admin_name}</p>
+                        <p class="text-sm"><i class="fa-solid fa-phone"></i> ${phone}</p>
+                        <div class="flex gap-2 mt-4">
+                            <button class="btn btn-primary w-full" onclick='viewMachines(${chc.id}, "${safeName}")'>View Machines</button>
+                            <button class="btn btn-secondary w-full" onclick='UI.showToast("Contact: ${phone}")'>Contact</button>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Search error:", err);
+                resultsDiv.innerHTML = '<p class="text-center w-full text-danger">Error searching.</p>';
+            }
+        }
+
         async function viewMachines(chcId, chcName) {
             const container = document.getElementById('machine-list-container');
             const title = document.getElementById('chc-title');
@@ -197,11 +250,11 @@
                                 ${m.status}
                             </span>
                         </div>
-        <button class="btn btn-primary w-full mt-4" 
-                onclick='openBookingModal(${JSON.stringify(m)})'>
-            Book Now
-        </button>
-        ${m.status !== 'Idle' ? '<p class="text-xs text-muted text-center mt-2">Available for future booking</p>' : ''}
+                        <button class="btn btn-primary w-full mt-4" 
+                                onclick='openBookingModal(${JSON.stringify(m).replace(/'/g, "\\'")})'>
+                            Book Now
+                        </button>
+                        ${m.status !== 'Idle' ? '<p class="text-xs text-muted text-center mt-2">Available for future booking</p>' : ''}
                     `;
                     container.appendChild(card);
                 });
@@ -215,56 +268,16 @@
             UI.hideModal('machine-list-modal');
             UI.showModal('booking-modal');
             
-            // Pre-fill machine select
             const select = document.getElementById('machine-select');
-            select.innerHTML = ''; // Clear existing
+            select.innerHTML = '';
             const opt = document.createElement('option');
             opt.value = machine.id;
             opt.textContent = `${machine.machine_name} (${machine.machine_type})`;
             opt.selected = true;
             select.appendChild(opt);
-            
-            // Maybe add a hidden title or update modal title
-            // document.querySelector('#booking-modal h2').textContent = `Book ${machine.machine_name}`;
-        }
-        // Search Handlers
-        async function searchCHCs() {
-            const query = document.getElementById('search-query').value;
-            const resultsDiv = document.getElementById('chc-results');
-            
-            resultsDiv.innerHTML = '<p class="text-center w-full">Searching...</p>';
-            
-            try {
-                // Pass as 'search' param for text search on name/location
-                const chcs = await API.searchCHCs({ search: query });
-                resultsDiv.innerHTML = '';
-                
-                if (chcs.length === 0) {
-                    resultsDiv.innerHTML = '<p class="text-center w-full">No centers found.</p>';
-                    return;
-                }
-
-                chcs.forEach(chc => {
-                    const card = document.createElement('div');
-                    card.className = 'glass-panel p-4';
-                    card.innerHTML = `
-                        <h3 class="text-primary">${chc.chc_name}</h3>
-                        <p><i class="fa-solid fa-location-dot"></i> ${chc.location}, ${chc.district}</p>
-                        <p class="text-muted text-sm mt-2">Manager: ${chc.admin_name}</p>
-                        <div class="flex gap-2 mt-4">
-                            <button class="btn btn-primary w-full" onclick="viewMachines(${chc.id}, '${chc.chc_name}')">View Machines</button>
-                            <button class="btn btn-secondary w-full" onclick="UI.showToast('Call ${chc.phone_no} for details')">Contact</button>
-                        </div>
-                    `;
-                    resultsDiv.appendChild(card);
-                });
-
-            } catch (err) {
-                 resultsDiv.innerHTML = '<p class="text-center w-full text-danger">Error searching.</p>';
-            }
         }
 
-        // Form Handlers
+        // Login form handler
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -283,19 +296,11 @@
             }
         });
 
-        document.getElementById('booking-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            
-            try {
-                await API.createBooking(data);
-                UI.showToast('Booking submitted successfully!', 'success');
-                UI.hideModal('booking-modal');
-                e.target.reset();
-            } catch (err) {
-                UI.showToast(err.message || 'Booking failed', 'error');
-            }
+        // Pre-fill dates with min attribute (optional)
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('start-date')?.setAttribute('min', today);
+            document.getElementById('end-date')?.setAttribute('min', today);
         });
     </script>
 </body>

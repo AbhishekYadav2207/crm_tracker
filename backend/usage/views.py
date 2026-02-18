@@ -8,6 +8,8 @@ class MachineUsageListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return MachineUsage.objects.none()
         if user.role == 'CHC_ADMIN' and user.chc:
             return MachineUsage.objects.filter(chc=user.chc)
         elif user.role == 'GOVT_ADMIN':
@@ -27,6 +29,8 @@ class MachineUsageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return MachineUsage.objects.none()
         if user.role == 'CHC_ADMIN' and user.chc:
             return MachineUsage.objects.filter(chc=user.chc)
         elif user.role == 'GOVT_ADMIN':

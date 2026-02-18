@@ -17,7 +17,7 @@ class UI {
 
     static showToast(message, type = 'info') {
         const container = document.getElementById('toast-container');
-        if (!container) return; // Should be in every page
+        if (!container) return;
 
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
@@ -30,17 +30,24 @@ class UI {
 
         container.appendChild(toast);
 
-        // Auto remove after 3s
         setTimeout(() => {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
 
-    // Helper to populate tables or grids
     static clearElement(elementId) {
         const el = document.getElementById(elementId);
         if (el) el.innerHTML = '';
+    }
+
+    // Helper to show/hide loading spinner (can be used in tables)
+    static setLoading(elementId, isLoading) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        if (isLoading) {
+            el.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-muted">Loading...</td></tr>`;
+        }
     }
 }
 
