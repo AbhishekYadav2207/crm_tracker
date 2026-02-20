@@ -4,6 +4,7 @@ from .models import Booking
 from .serializers import BookingSerializer, BookingCreateSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 from analytics.models import AuditLog, Notification
 
 class PublicBookingCreateView(generics.CreateAPIView):
@@ -102,4 +103,16 @@ class CHCBookingActionView(generics.UpdateAPIView):
             new_value={'status': booking.status, 'notes': notes}
         )
         
+        
         return Response(BookingSerializer(booking).data)
+
+class MachineBookedDatesView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, machine_id):
+        bookings = Booking.objects.filter(
+            machine_id=machine_id,
+            status__in=['Pending', 'Approved', 'Active']
+        ).values('start_date', 'end_date')
+        
+        return Response(list(bookings))

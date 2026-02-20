@@ -150,6 +150,9 @@
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script>
+        // Booked dates state
+        let currentMachineBookedDates = [];
+
         // Client-side validation for dates and Aadhar
         document.getElementById('booking-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -164,6 +167,11 @@
             }
             if (!/^\d{12}$/.test(aadhar)) {
                 UI.showToast('Aadhar must be 12 digits', 'error');
+                return;
+            }
+
+            if (isDateRangeOverlap(start, end)) {
+                UI.showToast('Selected dates overlap with an existing booking.', 'error');
                 return;
             }
             
@@ -197,9 +205,8 @@
                 chcs.forEach(chc => {
                     const card = document.createElement('div');
                     card.className = 'glass-panel p-4';
-                    // Escape single quotes in chc name for onclick
                     const safeName = chc.chc_name.replace(/'/g, "\\'");
-                    const phone = chc.phone_no || 'Not available';
+                    const phone = chc.contact_number || 'Not available';
                     card.innerHTML = `
                         <h3 class="text-primary">${chc.chc_name}</h3>
                         <p><i class="fa-solid fa-location-dot"></i> ${chc.location}, ${chc.district}</p>
@@ -264,7 +271,7 @@
             }
         }
 
-        function openBookingModal(machine) {
+        async function openBookingModal(machine) {
             UI.hideModal('machine-list-modal');
             UI.showModal('booking-modal');
             
@@ -275,7 +282,46 @@
             opt.textContent = `${machine.machine_name} (${machine.machine_type})`;
             opt.selected = true;
             select.appendChild(opt);
+
+            // Fetch booked dates for this machine
+            currentMachineBookedDates = [];
+            try {
+                const dates = await API.getMachineBookedDates(machine.id);
+                currentMachineBookedDates = dates;
+                
+                // Optional: visual cue to user
+                if (dates.length > 0) {
+                     UI.showToast(`Note: This machine has ${dates.length} upcoming booking(s).`, 'info');
+                }
+            } catch (err) {
+                console.error("Failed to fetch booked dates", err);
+            }
         }
+
+        // Validate date ranges
+        function isDateRangeOverlap(start, end) {
+            if (!start || !end) return false;
+            const newStart = new Date(start);
+            const newEnd = new Date(end);
+            
+            return currentMachineBookedDates.some(booking => {
+                const bStart = new Date(booking.start_date);
+                const bEnd = new Date(booking.end_date);
+                return newStart <= bEnd && newEnd >= bStart;
+            });
+        }
+
+        ['start-date', 'end-date'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                const start = document.getElementById('start-date').value;
+                const end = document.getElementById('end-date').value;
+                if (start && end && isDateRangeOverlap(start, end)) {
+                    UI.showToast('These dates are already booked. Please select different dates.', 'warning');
+                    document.getElementById('start-date').value = '';
+                    document.getElementById('end-date').value = '';
+                }
+            });
+        });
 
         // Login form handler
         document.getElementById('login-form').addEventListener('submit', async (e) => {

@@ -489,9 +489,69 @@
                     </div>
                 `;
                 
-                // Placeholder for usage/maintenance – can be replaced with real endpoints
-                document.getElementById('machine-usage-list').innerHTML = '<p class="text-muted italic p-4">No recent usage history.</p>';
-                document.getElementById('machine-maintenance-list').innerHTML = '<p class="text-muted italic p-4">No maintenance records found.</p>';
+                // Fetch and render usage history
+                try {
+                    const usageData = await API.getMachineUsage(machine.id);
+                    const usageList = document.getElementById('machine-usage-list');
+                    if (usageData && usageData.length > 0) {
+                        let usageHtml = '<div class="flex flex-col gap-3 p-2">';
+                        usageData.forEach(record => {
+                            usageHtml += `
+                                <div class="p-3 bg-white rounded border border-gray-200 shadow-sm flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-sm">${record.farmer_name}</div>
+                                        <div class="text-xs text-muted flex gap-2">
+                                            <span><i class="fa-regular fa-calendar mr-1"></i>${record.usage_date}</span>
+                                            <span><i class="fa-regular fa-clock mr-1"></i>${record.start_time} - ${record.end_time}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-primary">${record.total_hours_used || 0} hrs</div>
+                                        <div class="text-xs text-muted">${record.area_covered || 0} acres</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        usageHtml += '</div>';
+                        usageList.innerHTML = usageHtml;
+                    } else {
+                        usageList.innerHTML = '<p class="text-muted italic p-4">No recent usage history.</p>';
+                    }
+                } catch (e) {
+                    console.error("Failed to load usage data", e);
+                    document.getElementById('machine-usage-list').innerHTML = '<p class="text-danger p-4">Error loading usage history.</p>';
+                }
+
+                // Render maintenance history/status
+                const maintenanceList = document.getElementById('machine-maintenance-list');
+                const isMaintenance = machine.status === 'Maintenance';
+                maintenanceList.innerHTML = `
+                    <div class="p-4 bg-gray-50 rounded-lg border flex flex-col gap-4">
+                        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-lg">Current Status</h3>
+                                <p class="text-sm text-gray-600">Machine operational state</p>
+                            </div>
+                            <span class="badge ${isMaintenance ? 'bg-warning-light text-warning' : (machine.status === 'Available' ? 'bg-success-light text-success' : 'bg-primary-light text-primary')} px-3 py-1 rounded text-sm font-bold">
+                                ${machine.status}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-muted font-bold uppercase block mb-1">Purchase Year</label>
+                                <div class="font-medium">${machine.purchase_year || 'Not specified'}</div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-muted font-bold uppercase block mb-1">Last Serviced</label>
+                                <div class="font-medium">${machine.last_serviced_date || 'Never'}</div>
+                            </div>
+                        </div>
+                        ${isMaintenance ? `
+                        <div class="mt-2 p-3 bg-yellow-50 text-warning border border-yellow-200 rounded text-sm">
+                            <i class="fa-solid fa-wrench mr-2"></i> This machine is currently undergoing maintenance and cannot be booked.
+                        </div>` : ''}
+                    </div>
+                `;
 
                 switchTab('overview');
                 UI.showModal('machine-details-modal');

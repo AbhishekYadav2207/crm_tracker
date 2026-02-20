@@ -23,7 +23,7 @@ class API {
 
     static async request(endpoint, method = 'GET', body = null, auth = false, retry = true) {
         const url = `${API_BASE_URL}${endpoint}`;
-        
+
         // Build headers dynamically
         const headers = {};
         if (auth) {
@@ -69,16 +69,40 @@ class API {
                 throw new Error(data.detail || data.error || 'Something went wrong');
             }
 
-            // Handle DRF Pagination
-            if (data.results && Array.isArray(data.results)) {
-                return data.results;
-            }
-
+            // Instead of just handling DRF Pagination here, we return the raw response
+            // so fetchAllPages or the caller can handle .results and .next properly
             return data;
         } catch (error) {
             console.error(`API Error (${endpoint}):`, error);
             throw error;
         }
+    }
+
+    // Helper to fetch all pages for DRF paginated endpoints
+    static async fetchAllPages(endpointUrl, auth = false, startMethod = 'GET') {
+        let results = [];
+        let nextUrl = endpointUrl;
+
+        while (nextUrl) {
+            // DRF returns full absolute URLs in "next". If the user passes a relative string initially, standard request handles it.
+            // But if it's an absolute URL, we need to strip the API_BASE_URL to use request(), or just use fetch directly.
+            // Since we want `request()`'s auth handling, we'll extract the relative path:
+            let relativePath = nextUrl;
+            if (nextUrl.startsWith(API_BASE_URL)) {
+                relativePath = nextUrl.substring(API_BASE_URL.length);
+            }
+
+            const data = await this.request(relativePath, startMethod, null, auth);
+
+            if (data.results && Array.isArray(data.results)) {
+                results = results.concat(data.results);
+                nextUrl = data.next; // DRF puts the next page URL here, or null
+            } else {
+                // Not paginated, return as is (wrapped in array if not already?)
+                return Array.isArray(data) ? data : [data];
+            }
+        }
+        return results;
     }
 
     // Auth
@@ -126,12 +150,22 @@ class API {
         if (chcId) {
             endpoint += `?chc=${chcId}`;
         }
-        return await this.request(endpoint, 'GET', null, !publicView);
+        return await this.fetchAllPages(endpoint, !publicView);
     }
 
     // Get single machine detail (for CHC admin)
     static async getMachineDetail(id) {
         return await this.request(`/machines/${id}/`, 'GET', null, true);
+    }
+
+    // Get usage history for a machine
+    static async getMachineUsage(machineId) {
+        return await this.fetchAllPages(`/usage/?machine=${machineId}`, true);
+    }
+
+    // Get booked dates for a machine (for public booking calendar)
+    static async getMachineBookedDates(machineId) {
+        return await this.request(`/bookings/public/machine/${machineId}/dates/`, 'GET', null, false);
     }
 
     // Bookings
@@ -142,12 +176,12 @@ class API {
     // CHC Search
     static async searchCHCs(query) {
         const params = new URLSearchParams(query).toString();
-        return await this.request(`/chc/public/search/?${params}`, 'GET', null, false);
+        return await this.fetchAllPages(`/chc/public/search/?${params}`, false);
     }
 
     // CHC Admin Bookings
     static async getCHCBookings() {
-        return await this.request('/bookings/chc/', 'GET', null, true);
+        return await this.fetchAllPages('/bookings/chc/', true);
     }
 
     static async updateBookingStatus(id, action, notes = '') {
