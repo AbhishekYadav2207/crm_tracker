@@ -97,6 +97,13 @@ class CHCDashboardView(APIView):
             "machines_in_use": machines.filter(status='In Use').count(),
             "pending_bookings": bookings.filter(status='Pending').count(),
             "active_bookings": bookings.filter(status='Active').count(),
+            "total_usage_hours": float(MachineUsage.objects.filter(chc=chc).aggregate(Sum('total_hours_used'))['total_hours_used__sum'] or 0),
+            "total_area_covered": float(MachineUsage.objects.filter(chc=chc).aggregate(Sum('area_covered'))['area_covered__sum'] or 0),
+            "total_residue_managed": float(MachineUsage.objects.filter(chc=chc).aggregate(Sum('residue_managed'))['residue_managed__sum'] or 0),
+            "charts": {
+                "status_breakdown": {item['status']: item['count'] for item in machines.values('status').annotate(count=Count('id'))},
+                "machine_types": {item['machine_type']: item['count'] for item in machines.values('machine_type').annotate(count=Count('id'))}
+            }
         })
 
 
@@ -105,13 +112,17 @@ class MachineAnalyticsView(APIView):
 
     def get(self, request):
         # Role check
-        if request.user.role not in ['GOVT_ADMIN', 'CHC_ADMIN']:
+        if request.user.role == 'GOVT_ADMIN':
+             machines = Machine.objects.all()
+        elif request.user.role == 'CHC_ADMIN':
+             machines = Machine.objects.filter(chc=request.user.chc)
+        else:
              return Response({"error": "Unauthorized"}, status=403)
 
         # Detailed stats about machines
-        machine_types = Machine.objects.values('machine_type').annotate(count=Count('id'))
+        machine_types = machines.values('machine_type').annotate(count=Count('id'))
 
-        status_breakdown = Machine.objects.values('status').annotate(count=Count('id'))
+        status_breakdown = machines.values('status').annotate(count=Count('id'))
         
         return Response({
             "machine_types": machine_types,
