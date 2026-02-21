@@ -4,151 +4,252 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Tracker - Advanced Machine Management</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="bg-slate-50 font-sans text-gray-800 antialiased selection:bg-blue-500 selection:text-white">
 
-    <nav class="glass-panel" style="position: sticky; top: 0; z-index: 40; padding: 1rem 2rem;">
-        <div class="flex items-center justify-between" style="max-width: 1200px; margin: 0 auto;">
+    <nav class="sticky top-0 z-40 backdrop-blur-lg bg-white/80 border-b border-gray-100 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-tractor fa-2x" style="color: var(--primary);"></i>
                 <span style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">CRM Tracker</span>
             </div>
             <div>
-                <button class="btn btn-secondary" onclick="UI.showModal('login-modal')">
-                    <i class="fa-solid fa-right-to-bracket" style="margin-right: 0.5rem;"></i> Login
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg flex items-center" onclick="UI.showModal('login-modal')">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> Admin Login
                 </button>
             </div>
         </div>
     </nav>
 
-    <header class="flex items-center justify-center p-8" style="min-height: 80vh; text-align: center; background: radial-gradient(circle at top right, #e0f2fe, #f8fafc);">
-        <div style="max-width: 800px;">
-            <h1 class="floating">Advanced Crop Residue Management</h1>
-            <p style="font-size: 1.25rem; color: var(--text-muted); margin-bottom: 2rem;">
-                Connect with Custom Hiring Centers (CHCs) to book machines efficiently. 
-                Streamlining agriculture with technology.
+    <header class="relative overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white min-h-[70vh] flex items-center justify-center pt-16 pb-32">
+        <!-- Decorative background elements -->
+        <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/30 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
+        
+        <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-white">
+                Advanced Crop Residue Management
+            </h1>
+            <p class="text-xl md:text-2xl text-blue-100/80 mb-10 max-w-3xl mx-auto font-light leading-relaxed">
+                Connect with Custom Hiring Centers (CHCs) to book heavy machinery efficiently. 
+                Streamlining modern agriculture with intelligent technology.
             </p>
-            <div class="flex justify-center gap-4">
-                <button class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="document.getElementById('search-section').scrollIntoView({behavior: 'smooth'})">
-                    <i class="fa-solid fa-calendar-check" style="margin-right: 0.5rem;"></i> Book a Machine
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button class="bg-blue-500 hover:bg-blue-400 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center" onclick="document.getElementById('search-section').scrollIntoView({behavior: 'smooth'})">
+                    <i class="fa-solid fa-calendar-check mr-2"></i> Book Machinery
                 </button>
-                <button class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem;" onclick="location.href='#how-it-works'">
-                    <i class="fa-solid fa-circle-info" style="margin-right: 0.5rem;"></i> How it Works
+                <button class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg transition-all flex items-center justify-center" onclick="location.href='#how-it-works'">
+                    <i class="fa-solid fa-circle-info mr-2"></i> How it Works
                 </button>
             </div>
         </div>
+        
+        <!-- Curved bottom wave -->
+        <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10">
+            <svg class="relative block w-full h-[50px] md:h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,124.23,199.31,106.7Z" class="fill-slate-50"></path>
+            </svg>
+        </div>
     </header>
 
-    <section id="search-section" class="p-8" style="background: white;">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <h2 class="text-center mb-8">Find a Center Near You</h2>
-            <div class="glass-panel p-4" style="border-radius: var(--radius); display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-                <input type="text" placeholder="Search by Center Name, City, or District..." class="form-input" style="flex: 2; max-width: 500px;" id="search-query">
-                <button class="btn btn-primary" onclick="searchCHCs()">Find Center</button>
+    <section id="search-section" class="py-20 relative z-20 -mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Find a Center Near You</h2>
+                <p class="text-gray-500">Locate available equipment in your district dynamically.</p>
             </div>
             
-            <div id="chc-results" style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+            <div class="bg-white p-3 rounded-2xl shadow-xl border border-gray-100 flex flex-col sm:flex-row gap-3 max-w-3xl mx-auto transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                    </div>
+                    <input type="text" placeholder="Search by Center Name, City, or District..." class="w-full pl-11 pr-4 py-4 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" id="search-query" onkeyup="if(event.key === 'Enter') searchCHCs()">
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-xl shadow-md transition-colors flex items-center justify-center shrink-0" onclick="searchCHCs()">
+                    Search Directory
+                </button>
+            </div>
+            
+            <div id="chc-results" class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Results injected -->
             </div>
         </div>
     </section>
+    <section id="how-it-works" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">Booking advanced machinery is now simpler than ever. Follow these three easy steps to organize your harvest.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="text-center flex flex-col items-center">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl mb-6 shadow-sm">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">1. Find Your Center</h3>
+                    <p class="text-gray-600 leading-relaxed">Search your city or district to locate the nearest active Custom Hiring Center.</p>
+                </div>
+                <div class="text-center flex flex-col items-center">
+                    <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-3xl mb-6 shadow-sm">
+                        <i class="fa-solid fa-tractor"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">2. Choose Equipment</h3>
+                    <p class="text-gray-600 leading-relaxed">Browse the center's real-time inventory and select the idle machinery you need.</p>
+                </div>
+                <div class="text-center flex flex-col items-center">
+                    <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-3xl mb-6 shadow-sm">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">3. Book Instantly</h3>
+                    <p class="text-gray-600 leading-relaxed">Pick your dates, secure your slot, and prepare for a seamless agricultural operation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <footer class="p-8" style="background: var(--text-main); color: white; text-align: center;">
-        <p>&copy; 2026 CRM Tracker. All rights reserved.</p>
+    <footer class="bg-slate-900 text-slate-400 py-12 text-center border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center">
+            <div class="flex items-center gap-2 mb-4 text-white">
+                <i class="fa-solid fa-tractor fa-lg text-blue-500"></i>
+                <span class="text-xl font-bold tracking-wide">CRM Tracker</span>
+            </div>
+            <p>&copy; 2026 Crop Residue Management Platform. All rights reserved.</p>
+        </div>
     </footer>
 
     <!-- Login Modal -->
-    <div id="login-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="close-modal" onclick="UI.hideModal('login-modal')">&times;</button>
-            <h2 class="text-center">Admin Login</h2>
-            <form id="login-form">
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-input" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-full">Login</button>
-            </form>
+    <div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 tw-modal hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-shield-halved text-blue-600 mr-2"></i>Admin Authentication</h2>
+                <button class="text-gray-400 hover:text-red-500 transition-colors" onclick="UI.hideModal('login-modal')"><i class="fa-solid fa-times fa-lg"></i></button>
+            </div>
+            <div class="p-6">
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-user text-gray-400"></i>
+                            </div>
+                            <input type="text" name="username" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-lock text-gray-400"></i>
+                            </div>
+                            <input type="password" name="password" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-md transition-colors flex justify-center items-center mt-6">
+                        Secure Login <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Booking Modal (with client-side validation) -->
-    <div id="booking-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
-            <button class="close-modal" onclick="UI.hideModal('booking-modal')">&times;</button>
-            <h2 class="text-center">Book a Machine</h2>
-            <form id="booking-form">
-                <div class="form-group">
-                    <label class="form-label">Select Machine</label>
-                    <select name="machine" class="form-input" required id="machine-select">
-                        <option value="">Loading machines...</option>
-                    </select>
-                </div>
-                <div class="flex gap-4">
-                    <div class="form-group w-full">
-                        <label class="form-label">Start Date</label>
-                        <input type="date" name="start_date" class="form-input" required id="start-date">
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 tw-modal hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+                <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-file-contract text-blue-600 mr-2"></i>Book Machinery</h2>
+                <button class="text-gray-400 hover:text-red-500 transition-colors shrink-0" onclick="UI.hideModal('booking-modal')"><i class="fa-solid fa-times fa-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <form id="booking-form" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Target Asset</label>
+                        <select name="machine" class="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required id="machine-select" readonly>
+                            <option value="">Loading machine context...</option>
+                        </select>
                     </div>
-                    <div class="form-group w-full">
-                        <label class="form-label">End Date</label>
-                        <input type="date" name="end_date" class="form-input" required id="end-date">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                            <input type="date" name="start_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" required id="start-date" disabled>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                            <input type="date" name="end_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" required id="end-date" disabled>
+                        </div>
+                        <div class="col-span-full">
+                            <p id="date-overlap-error" class="text-sm text-red-500 mt-1 hidden"><i class="fa-solid fa-triangle-exclamation mr-1"></i> These dates conflict with an existing schedule.</p>
+                            <p id="date-loading-info" class="text-sm text-blue-500 mt-1"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Syncing availability...</p>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Title/Purpose</label>
-                    <input type="text" name="purpose" class="form-input" placeholder="e.g., Sowing Wheat" required>
-                </div>
-                <div class="flex gap-4">
-                    <div class="form-group w-full">
-                         <label class="form-label">Farmer Name</label>
-                         <input type="text" name="farmer_name" class="form-input" required>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Operation Purpose</label>
+                        <input type="text" name="purpose" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="e.g., Post-Harvest Clearing" required>
                     </div>
-                    <div class="form-group w-full">
-                         <label class="form-label">Phone Number</label>
-                         <input type="tel" name="farmer_contact" class="form-input" required maxlength="10" pattern="[0-9]{10}" title="10-digit phone number">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                             <label class="block text-sm font-medium text-gray-700 mb-1">Farmer Full Name</label>
+                             <input type="text" name="farmer_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="First Last" required>
+                        </div>
+                        <div>
+                             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                             <div class="relative">
+                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                     <span class="text-gray-500 sm:text-sm">+91</span>
+                                 </div>
+                                 <input type="tel" name="farmer_contact" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="9876543210" required maxlength="10" pattern="[0-9]{10}" title="10-digit phone number">
+                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address (Optional)</label>
+                            <input type="email" name="farmer_email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="farmer@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Aadhar Verification</label>
+                            <input type="text" name="farmer_aadhar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="XXXX XXXX XXXX" required maxlength="12" pattern="[0-9]{12}" title="12-digit Aadhar number" id="aadhar">
+                        </div>
                     </div>
-                </div>
-                <div class="flex gap-4">
-                    <div class="form-group w-full">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="farmer_email" class="form-input" required>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Land Area (Acres)</label>
+                        <input type="number" step="0.1" name="field_area" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Approximate acres to cover" required>
                     </div>
-                    <div class="form-group w-full">
-                        <label class="form-label">Aadhar Number</label>
-                        <input type="text" name="farmer_aadhar" class="form-input" required maxlength="12" pattern="[0-9]{12}" title="12-digit Aadhar number" id="aadhar">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Field Area (Acres)</label>
-                    <input type="number" step="0.1" name="field_area" class="form-input" placeholder="Approx area">
-                </div>
 
-                <button type="submit" class="btn btn-primary w-full">Submit Request</button>
-            </form>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5 mt-4 flex justify-center items-center gap-2" id="submit-booking-btn" disabled>
+                        <i class="fa-solid fa-paper-plane"></i> Submit Request
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- Machine List Modal -->
-    <div id="machine-list-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
-            <button class="close-modal" onclick="UI.hideModal('machine-list-modal')">&times;</button>
-            <h2 class="text-center" id="chc-title">Machines Available</h2>
-            <div id="machine-list-container" class="grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                <!-- Machines injected -->
+    <div id="machine-list-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 tw-modal hidden flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-gray-50 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col max-h-[85vh] animate-fade-in-up">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white shrink-0">
+                <h2 class="text-xl font-bold text-gray-800" id="chc-title"><i class="fa-solid fa-boxes-stacked text-indigo-600 mr-2"></i>Equipment Base</h2>
+                <button class="text-gray-400 hover:text-red-500 transition-colors shrink-0" onclick="UI.hideModal('machine-list-modal')"><i class="fa-solid fa-times fa-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="machine-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Machines injected -->
+                </div>
             </div>
         </div>
     </div>
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/ui.js"></script>
-    <script src="js/api.js"></script>
+    <script src="js/ui.js?v=1.1"></script>
+    <script src="js/api.js?v=1.1"></script>
     <script>
         // Booked dates state
         let currentMachineBookedDates = [];
@@ -186,42 +287,70 @@
             }
         });
 
-        // Search CHCs with phone number handling
+        // Search CHCs with premium HTML generation
         async function searchCHCs() {
             const query = document.getElementById('search-query').value;
             const resultsDiv = document.getElementById('chc-results');
             
-            resultsDiv.innerHTML = '<p class="text-center w-full">Searching...</p>';
+            resultsDiv.innerHTML = `
+                <div class="col-span-full py-12 flex flex-col items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x mb-4 text-blue-500"></i>
+                    <p>Scanning directory for matches...</p>
+                </div>
+            `;
             
             try {
                 const chcs = await API.searchCHCs({ search: query });
                 resultsDiv.innerHTML = '';
                 
                 if (chcs.length === 0) {
-                    resultsDiv.innerHTML = '<p class="text-center w-full">No centers found.</p>';
+                    resultsDiv.innerHTML = `
+                        <div class="col-span-full py-12 flex flex-col items-center justify-center text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100">
+                            <i class="fa-solid fa-search-minus fa-3x mb-4 text-gray-300"></i>
+                            <h3 class="text-lg font-bold text-gray-700">No centers located</h3>
+                            <p class="text-sm mt-1">Try broadening your search term or checking districts nearby.</p>
+                        </div>
+                    `;
                     return;
                 }
 
                 chcs.forEach(chc => {
                     const card = document.createElement('div');
-                    card.className = 'glass-panel p-4';
+                    card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 p-6 flex flex-col justify-between group rendering-card';
                     const safeName = chc.chc_name.replace(/'/g, "\\'");
                     const phone = chc.contact_number || 'Not available';
                     card.innerHTML = `
-                        <h3 class="text-primary">${chc.chc_name}</h3>
-                        <p><i class="fa-solid fa-location-dot"></i> ${chc.location}, ${chc.district}</p>
-                        <p class="text-muted text-sm mt-2">Manager: ${chc.admin_name}</p>
-                        <p class="text-sm"><i class="fa-solid fa-phone"></i> ${phone}</p>
-                        <div class="flex gap-2 mt-4">
-                            <button class="btn btn-primary w-full" onclick='viewMachines(${chc.id}, "${safeName}")'>View Machines</button>
-                            <button class="btn btn-secondary w-full" onclick='UI.showToast("Contact: ${phone}")'>Contact</button>
+                        <div>
+                            <div class="flex items-start justify-between mb-4">
+                                <h3 class="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">${chc.chc_name}</h3>
+                                <div class="bg-blue-50 text-blue-600 p-2 rounded-lg shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-warehouse"></i>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-gray-400 w-4"></i> <span>${chc.location}, <strong>${chc.district}</strong></span></p>
+                                <p class="flex items-center gap-2"><i class="fa-solid fa-user-tie text-gray-400 w-4"></i> ${chc.admin_name}</p>
+                                <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-gray-400 w-4"></i> ${phone}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-6 pt-4 border-t border-gray-50">
+                            <button class="flex-1 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-semibold py-2.5 rounded-lg transition-colors text-sm" onclick='viewMachines(${chc.id}, "${safeName}")'>
+                                View Assets
+                            </button>
+                            <button class="bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium py-2.5 px-4 rounded-lg transition-colors border border-gray-200 shadow-sm" title="Contact" onclick='UI.showToast("Direct Line: ${phone}")'>
+                                <i class="fa-solid fa-phone"></i>
+                            </button>
                         </div>
                     `;
                     resultsDiv.appendChild(card);
                 });
             } catch (err) {
                 console.error("Search error:", err);
-                resultsDiv.innerHTML = '<p class="text-center w-full text-danger">Error searching.</p>';
+                resultsDiv.innerHTML = `
+                    <div class="col-span-full py-12 flex items-center justify-center text-red-500 bg-red-50 rounded-xl border border-red-100">
+                         <i class="fa-solid fa-circle-exclamation mr-2"></i> Error completing directory scan.
+                    </div>
+                `;
             }
         }
 
@@ -229,8 +358,12 @@
             const container = document.getElementById('machine-list-container');
             const title = document.getElementById('chc-title');
             
-            title.textContent = `Machines at ${chcName}`;
-            container.innerHTML = '<p class="text-center w-full">Loading machines...</p>';
+            title.innerHTML = `<i class="fa-solid fa-boxes-stacked text-indigo-600 mr-2"></i>Assets at ${chcName}`;
+            container.innerHTML = `
+                <div class="col-span-full py-8 flex flex-col items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x mb-4"></i><p>Loading inventory...</p>
+                </div>
+            `;
             
             UI.showModal('machine-list-modal');
             
@@ -239,49 +372,83 @@
                 container.innerHTML = '';
                 
                 if (!machines || machines.length === 0) {
-                    container.innerHTML = '<p class="text-center w-full text-muted">No machines available at this center.</p>';
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-10 bg-white rounded-xl border border-dashed border-gray-300 text-gray-500">
+                             <i class="fa-solid fa-ghost fa-2x mb-2 text-gray-300"></i>
+                             <p>No machinery registered to this center.</p>
+                        </div>
+                    `;
                     return;
                 }
 
                 machines.forEach(m => {
                     const card = document.createElement('div');
-                    card.className = 'glass-panel p-4 flex flex-col justify-between';
-                    card.style.borderLeft = m.status === 'Idle' ? '4px solid var(--success)' : '4px solid var(--accent)';
+                    card.className = 'bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between hover:border-blue-300 transition-colors relative overflow-hidden';
+                    
+                    const isIdle = m.status === 'Idle';
+                    const isMaint = m.status === 'Maintenance' || m.status === 'Out of Service';
+                    
+                    let bgStatus = 'bg-yellow-50 text-yellow-700 border-yellow-200';
+                    let ribbon = 'bg-yellow-500';
+                    if(isIdle) { bgStatus = 'bg-green-50 text-green-700 border-green-200'; ribbon='bg-green-500'; }
+                    if(isMaint) { bgStatus = 'bg-red-50 text-red-700 border-red-200'; ribbon='bg-red-500'; }
+                    
+                    // Add color bar on left side
+                    const safeName = m.machine_name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeModel = (m.machine_type||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const serializedM = JSON.stringify({id: m.id, machine_name: safeName, machine_type: safeModel}).replace(/"/g, '&quot;');
                     
                     card.innerHTML = `
-                        <div>
-                            <h4 class="font-bold text-lg">${m.machine_name}</h4>
-                            <p class="text-sm text-muted">${m.machine_type}</p>
-                            <span class="badge ${m.status === 'Idle' ? 'bg-success-light text-success' : 'bg-warning-light text-warning'}" 
-                                  style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; display: inline-block; margin-top: 0.5rem;">
-                                ${m.status}
-                            </span>
+                        <div class="absolute top-0 left-0 w-1.5 h-full ${ribbon}"></div>
+                        <div class="pl-2">
+                            <div class="flex justify-between items-start mb-2 gap-2">
+                                <h4 class="font-bold text-gray-800 text-lg leading-tight truncate" title="${m.machine_name}">${m.machine_name}</h4>
+                                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${bgStatus} shrink-0 mt-0.5">
+                                    ${m.status}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-medium mb-4">${m.machine_type}</p>
                         </div>
-                        <button class="btn btn-primary w-full mt-4" 
-                                onclick='openBookingModal(${JSON.stringify(m).replace(/'/g, "\\'")})'>
-                            Book Now
-                        </button>
-                        ${m.status !== 'Idle' ? '<p class="text-xs text-muted text-center mt-2">Available for future booking</p>' : ''}
+                        
+                        <div class="mt-auto pl-2">
+                            <button class="w-full ${isMaint ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'} font-medium py-2 rounded-lg transition-colors text-sm flex justify-center items-center" 
+                                    ${isMaint ? 'disabled' : ''}
+                                    onclick="if(!this.disabled) openBookingModal('${serializedM}')">
+                                <i class="fa-solid fa-calendar-plus mr-2"></i> ${isIdle ? 'Book Now' : 'Schedule Future'}
+                            </button>
+                        </div>
                     `;
                     container.appendChild(card);
                 });
             } catch (err) {
                 console.error(err);
-                container.innerHTML = '<p class="text-center w-full text-danger">Failed to load machines.</p>';
+                container.innerHTML = '<div class="col-span-full py-8 text-center text-red-500"><i class="fa-solid fa-triangle-exclamation mb-2"></i><br>Failed to retrieve machine data.</div>';
             }
         }
 
-        async function openBookingModal(machine) {
+        async function openBookingModal(machineStr) {
+            const machine = JSON.parse(machineStr);
             UI.hideModal('machine-list-modal');
             UI.showModal('booking-modal');
             
             const select = document.getElementById('machine-select');
-            select.innerHTML = '';
-            const opt = document.createElement('option');
-            opt.value = machine.id;
-            opt.textContent = `${machine.machine_name} (${machine.machine_type})`;
-            opt.selected = true;
-            select.appendChild(opt);
+            select.innerHTML = `<option value="${machine.id}">${machine.machine_name} (${machine.machine_type})</option>`;
+            
+            // UX Form Resets
+            document.getElementById('booking-form').reset();
+            const startInput = document.getElementById('start-date');
+            const endInput = document.getElementById('end-date');
+            const submitBtn = document.getElementById('submit-booking-btn');
+            const loadInfo = document.getElementById('date-loading-info');
+            const errInfo = document.getElementById('date-overlap-error');
+            
+            startInput.disabled = true;
+            endInput.disabled = true;
+            submitBtn.disabled = true;
+            loadInfo.classList.remove('hidden');
+            errInfo.classList.add('hidden');
+            startInput.classList.remove('border-red-400', 'ring-red-200');
+            endInput.classList.remove('border-red-400', 'ring-red-200');
 
             // Fetch booked dates for this machine
             currentMachineBookedDates = [];
@@ -289,12 +456,17 @@
                 const dates = await API.getMachineBookedDates(machine.id);
                 currentMachineBookedDates = dates;
                 
-                // Optional: visual cue to user
-                if (dates.length > 0) {
-                     UI.showToast(`Note: This machine has ${dates.length} upcoming booking(s).`, 'info');
-                }
+                // Unlock inputs
+                startInput.disabled = false;
+                endInput.disabled = false;
+                submitBtn.disabled = false;
+                loadInfo.classList.add('hidden');
             } catch (err) {
                 console.error("Failed to fetch booked dates", err);
+                loadInfo.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> Failed to sync dates. Proceed with caution.';
+                startInput.disabled = false;
+                endInput.disabled = false;
+                submitBtn.disabled = false;
             }
         }
 
@@ -313,12 +485,27 @@
 
         ['start-date', 'end-date'].forEach(id => {
             document.getElementById(id).addEventListener('change', () => {
-                const start = document.getElementById('start-date').value;
-                const end = document.getElementById('end-date').value;
-                if (start && end && isDateRangeOverlap(start, end)) {
-                    UI.showToast('These dates are already booked. Please select different dates.', 'warning');
-                    document.getElementById('start-date').value = '';
-                    document.getElementById('end-date').value = '';
+                const startInput = document.getElementById('start-date');
+                const endInput = document.getElementById('end-date');
+                const start = startInput.value;
+                const end = endInput.value;
+                const errInfo = document.getElementById('date-overlap-error');
+                const submitBtn = document.getElementById('submit-booking-btn');
+                
+                if (start && end) {
+                    if (isDateRangeOverlap(start, end)) {
+                        errInfo.classList.remove('hidden');
+                        startInput.classList.add('border-red-400');
+                        endInput.classList.add('border-red-400');
+                        submitBtn.disabled = true;
+                        submitBtn.classList.replace('bg-emerald-600', 'bg-gray-400');
+                    } else {
+                        errInfo.classList.add('hidden');
+                        startInput.classList.remove('border-red-400');
+                        endInput.classList.remove('border-red-400');
+                        submitBtn.disabled = false;
+                        submitBtn.classList.replace('bg-gray-400', 'bg-emerald-600');
+                    }
                 }
             });
         });

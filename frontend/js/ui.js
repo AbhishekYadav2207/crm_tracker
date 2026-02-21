@@ -3,6 +3,8 @@ class UI {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.add('open');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
             modal.setAttribute('aria-hidden', 'false');
         }
     }
@@ -11,6 +13,8 @@ class UI {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.remove('open');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
             modal.setAttribute('aria-hidden', 'true');
         }
     }
@@ -54,14 +58,14 @@ class UI {
 // Global Event Listeners for closing modals
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.open').forEach(modal => {
-            modal.classList.remove('open');
+        document.querySelectorAll('.modal-overlay.open, .tw-modal:not(.hidden)').forEach(modal => {
+            UI.hideModal(modal.id);
         });
     }
 });
 
 document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal-overlay')) {
-        e.target.classList.remove('open');
+    if (e.target.classList.contains('modal-overlay') || e.target.classList.contains('tw-modal')) {
+        UI.hideModal(e.target.id);
     }
 });
