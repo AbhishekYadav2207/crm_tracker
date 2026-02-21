@@ -80,29 +80,19 @@ class API {
 
     // Helper to fetch all pages for DRF paginated endpoints
     static async fetchAllPages(endpointUrl, auth = false, startMethod = 'GET') {
-        let results = [];
-        let nextUrl = endpointUrl;
+        // Append nopage=true to fetch all items in a single request
+        const separator = endpointUrl.includes('?') ? '&' : '?';
+        const unpaginatedUrl = `${endpointUrl}${separator}nopage=true`;
 
-        while (nextUrl) {
-            // DRF returns full absolute URLs in "next". If the user passes a relative string initially, standard request handles it.
-            // But if it's an absolute URL, we need to strip the API_BASE_URL to use request(), or just use fetch directly.
-            // Since we want `request()`'s auth handling, we'll extract the relative path:
-            let relativePath = nextUrl;
-            if (nextUrl.startsWith(API_BASE_URL)) {
-                relativePath = nextUrl.substring(API_BASE_URL.length);
-            }
-
-            const data = await this.request(relativePath, startMethod, null, auth);
-
-            if (data.results && Array.isArray(data.results)) {
-                results = results.concat(data.results);
-                nextUrl = data.next; // DRF puts the next page URL here, or null
-            } else {
-                // Not paginated, return as is (wrapped in array if not already?)
-                return Array.isArray(data) ? data : [data];
-            }
+        let relativePath = unpaginatedUrl;
+        if (unpaginatedUrl.startsWith(API_BASE_URL)) {
+            relativePath = unpaginatedUrl.substring(API_BASE_URL.length);
         }
-        return results;
+
+        const data = await this.request(relativePath, startMethod, null, auth);
+        
+        // CustomPagination with nopage=true returns a flat array, or DRF might return an object with results
+        return Array.isArray(data) ? data : (data.results ? data.results : [data]);
     }
 
     // Auth

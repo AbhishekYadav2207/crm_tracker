@@ -102,6 +102,8 @@
                            </tbody>
                        </table>
                    </div>
+                   <!-- Pagination Container -->
+                   <div id="machines-pagination" class="flex justify-center gap-2 mt-4"></div>
                 </div>
 
                  <!-- Bookings View -->
@@ -123,6 +125,8 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Pagination Container -->
+                    <div id="bookings-pagination" class="flex justify-center gap-2 mt-4"></div>
                  </div>
             </div>
         </main>
@@ -159,6 +163,7 @@
             </div>
             <div id="machine-tab-usage" class="tab-content hidden">
                 <div id="machine-usage-list"></div>
+                <div id="usage-pagination" class="flex justify-center gap-2 mt-4 pb-4"></div>
             </div>
             <div id="machine-tab-maintenance" class="tab-content hidden">
                 <div id="machine-maintenance-list"></div>
@@ -192,6 +197,52 @@
         // Global state
         let currentBookings = [];
         let currentMachines = [];
+        
+        // Paging state
+        const ITEMS_PER_PAGE = 10;
+        let bookingsPage = 1;
+        let machinesPage = 1;
+        let usagePage = 1;
+        let currentMachineUsage = [];
+
+        // Render Pagination Controls
+        function renderPagination(totalItems, currentPage, containerId, pageChangeCallback) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'btn btn-secondary text-sm px-3 py-1';
+            prevBtn.innerText = 'Prev';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => pageChangeCallback(currentPage - 1);
+            container.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    const btn = document.createElement('button');
+                    btn.className = `btn text-sm px-3 py-1 ${i === currentPage ? 'btn-primary' : 'btn-secondary'}`;
+                    btn.innerText = i;
+                    btn.onclick = () => pageChangeCallback(i);
+                    container.appendChild(btn);
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    const span = document.createElement('span');
+                    span.className = 'px-2 py-1 text-muted';
+                    span.innerText = '...';
+                    container.appendChild(span);
+                }
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'btn btn-secondary text-sm px-3 py-1';
+            nextBtn.innerText = 'Next';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => pageChangeCallback(currentPage + 1);
+            container.appendChild(nextBtn);
+        }
 
         // Load Dashboard Data
         async function loadDashboard() {
@@ -268,40 +319,56 @@
                 const response = await API.getCHCBookings(); 
                 const bookings = Array.isArray(response) ? response : (response.results || []);
                 currentBookings = bookings;
-                tbody.innerHTML = '';
-                
-                if (bookings.length === 0) {
-                    tbody.innerHTML = '<tr><td class="p-4" colspan="5">No booking requests found.</td></tr>';
-                    return;
-                }
-
-                bookings.forEach(b => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b hover:bg-gray-50 transition-colors';
-                    tr.innerHTML = `
-                        <td class="p-4">
-                            <div class="font-bold text-gray-800">${b.farmer_name}</div>
-                            <div class="text-sm text-muted">${b.farmer_contact}</div>
-                        </td>
-                        <td class="p-4">
-                            <div class="text-gray-800">${b.machine_details ? b.machine_details.machine_name : 'N/A'}</div>
-                            <small class="text-muted block">${b.machine_details ? b.machine_details.machine_code : ''}</small>
-                        </td>
-                        <td class="p-4 text-sm">
-                            <div class="font-medium">${b.start_date}</div>
-                            <div class="text-muted">to ${b.end_date}</div>
-                        </td>
-                        <td class="p-4"><span class="badge ${getStatusClass(b.status)} text-xs">${b.status}</span></td>
-                        <td class="p-4">
-                            <button class="btn btn-secondary text-sm px-3 py-1" onclick="viewBookingDetails('${b.id}')">View Details</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                bookingsPage = 1;
+                renderBookingsTable();
             } catch(e) {
                 console.error(e);
                 tbody.innerHTML = '<tr><td class="p-4 text-danger">Error loading bookings</td></tr>';
             }
+        }
+
+        function renderBookingsTable() {
+            const tbody = document.getElementById('bookings-table-body');
+            tbody.innerHTML = '';
+            
+            if (currentBookings.length === 0) {
+                tbody.innerHTML = '<tr><td class="p-4" colspan="5">No booking requests found.</td></tr>';
+                renderPagination(0, bookingsPage, 'bookings-pagination', () => {});
+                return;
+            }
+
+            const startIndex = (bookingsPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const paginated = currentBookings.slice(startIndex, endIndex);
+
+            paginated.forEach(b => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-gray-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-bold text-gray-800">${b.farmer_name}</div>
+                        <div class="text-sm text-muted">${b.farmer_contact}</div>
+                    </td>
+                    <td class="p-4">
+                        <div class="text-gray-800">${b.machine_details ? b.machine_details.machine_name : 'N/A'}</div>
+                        <small class="text-muted block">${b.machine_details ? b.machine_details.machine_code : ''}</small>
+                    </td>
+                    <td class="p-4 text-sm">
+                        <div class="font-medium">${b.start_date}</div>
+                        <div class="text-muted">to ${b.end_date}</div>
+                    </td>
+                    <td class="p-4"><span class="badge ${getStatusClass(b.status)} text-xs">${b.status}</span></td>
+                    <td class="p-4">
+                        <button class="btn btn-secondary text-sm px-3 py-1" onclick="viewBookingDetails('${b.id}')">View Details</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderPagination(currentBookings.length, bookingsPage, 'bookings-pagination', (newPage) => {
+                bookingsPage = newPage;
+                renderBookingsTable();
+            });
         }
 
         async function loadMachines() {
@@ -311,29 +378,45 @@
                 const response = await API.getMachines(false); 
                 const machines = Array.isArray(response) ? response : (response.results || []);
                 currentMachines = machines;
-                tbody.innerHTML = '';
-                
-                if (machines.length === 0) {
-                     tbody.innerHTML = '<tr><td class="p-4" colspan="4">No machines found.</td></tr>';
-                     return;
-                }
-
-                machines.forEach(m => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b hover:bg-gray-50 transition-colors';
-                    tr.innerHTML = `
-                        <td class="p-4 font-medium text-gray-800">${m.machine_name}</td>
-                        <td class="p-4 text-gray-600">${m.machine_type}</td>
-                        <td class="p-4"><span class="badge ${m.status === 'Available' ? 'badge-success' : 'badge-warning'} text-xs">${m.status}</span></td>
-                        <td class="p-4">
-                            <button class="btn btn-secondary text-sm px-3 py-1" onclick="viewMachineDetails('${m.id}')">View Details</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                machinesPage = 1;
+                renderMachinesTable();
             } catch(e) {
                 tbody.innerHTML = '<tr><td class="p-4 text-red-500">Error loading machines</td></tr>';
             }
+        }
+
+        function renderMachinesTable() {
+            const tbody = document.getElementById('machines-table-body');
+            tbody.innerHTML = '';
+            
+            if (currentMachines.length === 0) {
+                 tbody.innerHTML = '<tr><td class="p-4" colspan="4">No machines found.</td></tr>';
+                 renderPagination(0, machinesPage, 'machines-pagination', () => {});
+                 return;
+            }
+
+            const startIndex = (machinesPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const paginated = currentMachines.slice(startIndex, endIndex);
+
+            paginated.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-gray-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-4 font-medium text-gray-800">${m.machine_name}</td>
+                    <td class="p-4 text-gray-600">${m.machine_type}</td>
+                    <td class="p-4"><span class="badge ${m.status === 'Available' ? 'badge-success' : 'badge-warning'} text-xs">${m.status}</span></td>
+                    <td class="p-4">
+                        <button class="btn btn-secondary text-sm px-3 py-1" onclick="viewMachineDetails('${m.id}')">View Details</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderPagination(currentMachines.length, machinesPage, 'machines-pagination', (newPage) => {
+                machinesPage = newPage;
+                renderMachinesTable();
+            });
         }
 
         // --- Modals Logic ---
@@ -494,32 +577,19 @@
                     const usageData = await API.getMachineUsage(machine.id);
                     const usageList = document.getElementById('machine-usage-list');
                     if (usageData && usageData.length > 0) {
-                        let usageHtml = '<div class="flex flex-col gap-3 p-2">';
-                        usageData.forEach(record => {
-                            usageHtml += `
-                                <div class="p-3 bg-white rounded border border-gray-200 shadow-sm flex justify-between items-center">
-                                    <div>
-                                        <div class="font-bold text-sm">${record.farmer_name}</div>
-                                        <div class="text-xs text-muted flex gap-2">
-                                            <span><i class="fa-regular fa-calendar mr-1"></i>${record.usage_date}</span>
-                                            <span><i class="fa-regular fa-clock mr-1"></i>${record.start_time} - ${record.end_time}</span>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="font-bold text-primary">${record.total_hours_used || 0} hrs</div>
-                                        <div class="text-xs text-muted">${record.area_covered || 0} acres</div>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        usageHtml += '</div>';
-                        usageList.innerHTML = usageHtml;
+                        currentMachineUsage = usageData;
+                        usagePage = 1;
+                        renderUsageTable();
                     } else {
                         usageList.innerHTML = '<p class="text-muted italic p-4">No recent usage history.</p>';
+                        const pContainer = document.getElementById('usage-pagination');
+                        if (pContainer) pContainer.innerHTML = '';
                     }
                 } catch (e) {
                     console.error("Failed to load usage data", e);
                     document.getElementById('machine-usage-list').innerHTML = '<p class="text-danger p-4">Error loading usage history.</p>';
+                    const pContainer = document.getElementById('usage-pagination');
+                    if (pContainer) pContainer.innerHTML = '';
                 }
 
                 // Render maintenance history/status
@@ -559,6 +629,47 @@
                 console.error(err);
                 UI.showToast('Failed to load machine details', 'error');
             }
+        }
+
+        function renderUsageTable() {
+            const usageList = document.getElementById('machine-usage-list');
+            usageList.innerHTML = '';
+            
+            if (!currentMachineUsage || currentMachineUsage.length === 0) {
+                usageList.innerHTML = '<p class="text-muted italic p-4">No recent usage history.</p>';
+                renderPagination(0, usagePage, 'usage-pagination', () => {});
+                return;
+            }
+
+            const startIndex = (usagePage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const paginated = currentMachineUsage.slice(startIndex, endIndex);
+
+            let usageHtml = '<div class="flex flex-col gap-3 p-2">';
+            paginated.forEach(record => {
+                usageHtml += `
+                    <div class="p-3 bg-white rounded border border-gray-200 shadow-sm flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-sm">${record.farmer_name}</div>
+                            <div class="text-xs text-muted flex gap-2">
+                                <span><i class="fa-regular fa-calendar mr-1"></i>${record.usage_date}</span>
+                                <span><i class="fa-regular fa-clock mr-1"></i>${record.start_time} - ${record.end_time}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-primary">${record.total_hours_used || 0} hrs</div>
+                            <div class="text-xs text-muted">${record.area_covered || 0} acres</div>
+                        </div>
+                    </div>
+                `;
+            });
+            usageHtml += '</div>';
+            usageList.innerHTML = usageHtml;
+
+            renderPagination(currentMachineUsage.length, usagePage, 'usage-pagination', (newPage) => {
+                usagePage = newPage;
+                renderUsageTable();
+            });
         }
 
         async function updateBookingStatus(id, action) {

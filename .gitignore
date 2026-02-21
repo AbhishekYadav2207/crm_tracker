@@ -30,8 +30,4 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-migrations/
-/migrations/
-migrations/*
-
 /exported_data/
