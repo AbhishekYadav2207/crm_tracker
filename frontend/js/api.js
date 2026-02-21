@@ -90,7 +90,7 @@ class API {
         }
 
         const data = await this.request(relativePath, startMethod, null, auth);
-        
+
         // CustomPagination with nopage=true returns a flat array, or DRF might return an object with results
         return Array.isArray(data) ? data : (data.results ? data.results : [data]);
     }
@@ -127,6 +127,14 @@ class API {
     // Analytics (Govt)
     static async getGovtDashboard() {
         return await this.request('/analytics/govt/dashboard/', 'GET', null, true);
+    }
+
+    static async getGovtCHCDetailedAnalytics(chcId) {
+        return await this.request(`/analytics/govt/chc/${chcId}/`, 'GET', null, true);
+    }
+
+    static async getGovtReports() {
+        return await this.request('/analytics/govt/reports/', 'GET', null, true);
     }
 
     // Analytics (CHC)

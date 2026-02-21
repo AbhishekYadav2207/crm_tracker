@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -16,9 +17,9 @@
                 <i class="fa-solid fa-landmark"></i> Govt Admin
             </div>
             <nav class="flex flex-col gap-2">
-                <a href="#" class="nav-item active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-                <a href="#" class="nav-item"><i class="fa-solid fa-building"></i> All CHCs</a>
-                <a href="#" class="nav-item"><i class="fa-solid fa-file-invoice"></i> Reports</a>
+                <a href="#" class="nav-item active" onclick="switchView('analytics', this)"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+                <a href="#" class="nav-item" onclick="switchView('all-chcs', this)"><i class="fa-solid fa-building"></i> All CHCs</a>
+                <a href="#" class="nav-item" onclick="switchView('reports', this)"><i class="fa-solid fa-file-invoice"></i> Reports</a>
                 <a href="#" class="nav-item" onclick="API.logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </nav>
         </aside>
@@ -27,43 +28,207 @@
             <header class="flex justify-between items-center mb-8">
                 <h2>National CRM Analytics</h2>
                 <div class="flex items-center gap-4">
-                    <!-- Placeholder: Export button disabled until implemented -->
                     <button class="btn btn-primary" onclick="UI.showToast('Export feature coming soon', 'info')"><i class="fa-solid fa-download"></i> Export Report</button>
                 </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="stat-card">
-                   <div class="stat-label">Total Residue Managed</div>
-                   <div class="stat-value" id="stat-residue">0 Tons</div>
+            <!-- State-Level Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="stat-card bg-gradient-to-r from-blue-50 to-white shadow-sm border border-blue-100 p-5 rounded-xl">
+                   <div class="stat-label text-blue-600 font-semibold mb-1 uppercase tracking-wider text-xs"><i class="fa-solid fa-building mr-2"></i>Active CHCs</div>
+                   <div class="stat-value text-3xl font-bold text-gray-800" id="stat-chcs">0</div>
                 </div>
-                <div class="stat-card">
-                   <div class="stat-label">Total Area Covered</div>
-                   <div class="stat-value" id="stat-area">0 Acres</div>
+                <div class="stat-card bg-gradient-to-r from-emerald-50 to-white shadow-sm border border-emerald-100 p-5 rounded-xl">
+                   <div class="stat-label text-emerald-600 font-semibold mb-1 uppercase tracking-wider text-xs"><i class="fa-solid fa-leaf mr-2"></i>Residue Managed</div>
+                   <div class="stat-value text-3xl font-bold text-gray-800" id="stat-residue">0 Tons</div>
                 </div>
-                <div class="stat-card">
-                   <div class="stat-label">Total Usage Hours</div>
-                   <div class="stat-value" id="stat-hours">0 Hrs</div>
+                <div class="stat-card bg-gradient-to-r from-indigo-50 to-white shadow-sm border border-indigo-100 p-5 rounded-xl">
+                   <div class="stat-label text-indigo-600 font-semibold mb-1 uppercase tracking-wider text-xs"><i class="fa-solid fa-map mr-2"></i>Area Covered</div>
+                   <div class="stat-value text-3xl font-bold text-gray-800" id="stat-area">0 Acres</div>
+                </div>
+                <div class="stat-card bg-gradient-to-r from-purple-50 to-white shadow-sm border border-purple-100 p-5 rounded-xl">
+                   <div class="stat-label text-purple-600 font-semibold mb-1 uppercase tracking-wider text-xs"><i class="fa-solid fa-clock mr-2"></i>Total Usage</div>
+                   <div class="stat-value text-3xl font-bold text-gray-800" id="stat-hours">0 Hrs</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="glass-panel p-4">
-                    <h3>Machine Utilization by Type</h3>
-                    <canvas id="machineChart"></canvas>
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="glass-panel p-5 rounded-xl shadow-sm border border-gray-100 col-span-1">
+                    <h3 class="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4"><i class="fa-solid fa-power-off text-blue-500 mr-2"></i>Machine Status</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="statusChart"></canvas>
+                    </div>
                 </div>
-                <div class="glass-panel p-4">
-                    <h3>Impact Overview</h3>
-                    <canvas id="impactChart"></canvas>
+                <div class="glass-panel p-5 rounded-xl shadow-sm border border-gray-100 col-span-2">
+                    <h3 class="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4"><i class="fa-solid fa-tractor text-green-600 mr-2"></i>Inventory Distribution</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="typeChart"></canvas>
+                    </div>
                 </div>
             </div>
             
-            <div class="glass-panel p-4 mt-8">
-                 <h3>Active CHCs</h3>
-                 <div class="stat-value" id="stat-chcs">0</div>
-                 <p class="text-muted">Centers currently operating across the region.</p>
+            <!-- CHC Leaderboard Matrix -->
+            <div class="glass-panel p-0 rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
+                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 m-0 leading-tight">CHC Performance Matrix</h3>
+                        <p class="text-sm text-gray-500 mt-1">Detailed breakdown of equipment utilization across regions.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="chc-search" placeholder="Search CHC or District..." class="form-input text-sm px-3 py-2 w-64" onkeyup="filterLeaderboard()">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="chc-table">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                                <th class="p-4 border-b font-semibold">CHC Name & District</th>
+                                <th class="p-4 border-b font-semibold text-center">Machines (Active/Total)</th>
+                                <th class="p-4 border-b font-semibold text-center">Bookings (Active/Total)</th>
+                                <th class="p-4 border-b font-semibold text-right">Usage (Hrs)</th>
+                                <th class="p-4 border-b font-semibold text-right">Area (Acres)</th>
+                                <th class="p-4 border-b font-semibold text-right">Residue (Tons)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chc-table-body" class="text-sm divide-y divide-gray-100">
+                            <!-- Populated by JS -->
+                            <tr><td colspan="6" class="p-8 text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading analytics...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
+
+        <!-- All CHCs View -->
+        <main class="main-content hidden" id="view-all-chcs">
+            <header class="flex justify-between items-center mb-8">
+                <h2>All Common Hiring Centers</h2>
+                <div class="flex items-center gap-4 border bg-white rounded-lg px-3 py-1 shadow-sm">
+                    <i class="fa-solid fa-search text-gray-400"></i>
+                    <input type="text" id="global-chc-search" placeholder="Search centers..." class="border-none focus:ring-0 text-sm" onkeyup="filterAllCHCs()">
+                </div>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="all-chcs-grid">
+                <!-- Populated by JS -->
+            </div>
+            
+            <div class="mt-6 flex justify-center hidden" id="all-chcs-pagination">
+                <!-- Pagination -->
+            </div>
+        </main>
+
+        <!-- Reports View -->
+        <main class="main-content hidden" id="view-reports">
+            <header class="flex justify-between items-center mb-8">
+                <h2>Analytics & Insights Reports</h2>
+                <div class="flex items-center gap-4">
+                    <button class="btn btn-primary" onclick="UI.showToast('Generating PDF...', 'success')"><i class="fa-solid fa-print"></i> Generate PDF</button>
+                </div>
+            </header>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" id="reports-charts-container">
+                <!-- District Performance Chart -->
+                <div class="glass-panel p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4"><i class="fa-solid fa-map-location-dot text-indigo-500 mr-2"></i>District Utilization</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="districtChart"></canvas>
+                    </div>
+                </div>
+                <!-- Idle Ratio Chart -->
+                <div class="glass-panel p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-2"></i>Resource Inefficiency</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="idleChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <h3 class="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4"><i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i>AI Driven Recommendations</h3>
+                <div id="recommendations-container" class="space-y-3">
+                   <!-- Populated by JS -->
+                   <div class="p-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Analyzing data...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- CHC Detailed Analytics Modal -->
+    <div id="chc-detail-modal" class="modal">
+        <div class="modal-content max-w-4xl w-full p-0 overflow-hidden bg-gray-50 flex flex-col h-[90vh]">
+            <!-- Header -->
+            <div class="bg-white p-6 justify-between flex items-start border-b border-gray-200 shrink-0">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800" id="modal-chc-name">Loading Details...</h2>
+                    <div class="text-sm text-gray-500 mt-1 flex items-center gap-4">
+                        <span id="modal-chc-district"><i class="fa-solid fa-location-dot text-gray-400 mr-1"></i> -</span>
+                        <span id="modal-chc-admin"><i class="fa-solid fa-user text-gray-400 mr-1"></i> -</span>
+                        <span id="modal-chc-contact"><i class="fa-solid fa-phone text-gray-400 mr-1"></i> -</span>
+                    </div>
+                </div>
+                <button class="text-gray-400 hover:text-red-500 shrink-0" onclick="UI.hideModal('chc-detail-modal')"><i class="fa-solid fa-times fa-lg"></i></button>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="bg-white border-b border-gray-200 px-6 shrink-0">
+                <nav class="flex gap-6">
+                    <button class="py-3 border-b-2 font-medium text-sm border-primary text-primary" id="tab-btn-machines" onclick="switchModalTab('machines')">Inventory Base</button>
+                    <button class="py-3 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700" id="tab-btn-usage" onclick="switchModalTab('usage')">Usage Logs</button>
+                    <button class="py-3 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700" id="tab-btn-bookings" onclick="switchModalTab('bookings')">Recent Bookings</button>
+                </nav>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="p-6 overflow-y-auto grow">
+                <!-- Machines Tab -->
+                <div id="tab-machines" class="space-y-4 tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="modal-machines-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Usage Tab -->
+                <div id="tab-usage" class="hidden tab-content">
+                    <div class="bg-white rounded border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm table-fixed">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs">
+                                    <th class="p-3 w-1/4">Date</th>
+                                    <th class="p-3 w-1/4">Farmer</th>
+                                    <th class="p-3 w-1/4">Machine</th>
+                                    <th class="p-3 w-1/8 text-right">Hrs</th>
+                                    <th class="p-3 w-1/8 text-right">Acres</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-usage-list" class="divide-y divide-gray-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bookings Tab -->
+                <div id="tab-bookings" class="hidden tab-content">
+                    <div class="bg-white rounded border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-left text-sm table-fixed">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs">
+                                    <th class="p-3 w-1/4">Date Range</th>
+                                    <th class="p-3 w-1/4">Farmer</th>
+                                    <th class="p-3 w-1/4">Machine</th>
+                                    <th class="p-3 w-1/4 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-bookings-list" class="divide-y divide-gray-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="toast-container" class="toast-container"></div>
@@ -75,63 +240,475 @@
             window.location.href = 'index.html';
         }
 
-        let machineChart, impactChart;
-
-        async function loadGovtStats() {
-            try {
-                const stats = await API.getGovtDashboard();
-                
-                document.getElementById('stat-residue').textContent = `${stats.total_residue_managed} Tons`;
-                document.getElementById('stat-area').textContent = `${stats.total_area_covered} Acres`;
-                document.getElementById('stat-hours').textContent = `${stats.total_usage_hours} Hrs`;
-                document.getElementById('stat-chcs').textContent = stats.total_chcs;
-
-                renderCharts(stats);
-            } catch (err) {
-                console.error(err);
-                UI.showToast('Failed to load analytics', 'error');
+        let statusChart, typeChart, districtChart, idleChart;
+        let globalChcData = [];
+        let reportsLoaded = false;
+        
+        // --- View Switching ---
+        function switchView(viewId, element) {
+            document.querySelectorAll('aside nav a').forEach(a => a.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            document.querySelectorAll('main.main-content').forEach(m => m.classList.add('hidden'));
+            const showView = document.getElementById('view-' + viewId);
+            if(showView) showView.classList.remove('hidden');
+            
+            if (viewId === 'all-chcs') {
+               renderAllCHCsGrid(globalChcData);
+            } else if (viewId === 'reports' && !reportsLoaded) {
+               loadReportsData();
             }
         }
 
-        function renderCharts(stats) {
-            // Destroy previous charts if they exist
-            if (machineChart) machineChart.destroy();
-            if (impactChart) impactChart.destroy();
+        async function loadGovtStats() {
+            try {
+                const data = await API.getGovtDashboard();
+                
+                // Populate Overview
+                document.getElementById('stat-chcs').textContent = data.overview.total_chcs || 0;
+                document.getElementById('stat-residue').textContent = `${data.overview.total_residue_managed || 0} Tons`;
+                document.getElementById('stat-area').textContent = `${data.overview.total_area_covered || 0} Acres`;
+                document.getElementById('stat-hours').textContent = `${data.overview.total_usage_hours || 0} Hrs`;
 
-            const ctx1 = document.getElementById('machineChart').getContext('2d');
-            // Use real data if available, else fallback
-            const active = stats.machines_active || stats.total_bookings || 0;
-            const idle = (stats.total_machines - active) || 0;
-            const maintenance = stats.machines_under_maintenance || 0; // if endpoint provides
+                renderCharts(data.charts);
+                
+                // Populate Table
+                globalChcData = data.chc_analytics || [];
+                renderCHCTable(globalChcData);
+                
+            } catch (err) {
+                console.error(err);
+                UI.showToast('Failed to load deep analytics', 'error');
+                document.getElementById('chc-table-body').innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Failed to load data.</td></tr>`;
+            }
+        }
 
-            machineChart = new Chart(ctx1, {
+        function renderCharts(chartsData) {
+            // Destroy previous charts
+            if (statusChart) statusChart.destroy();
+            if (typeChart) typeChart.destroy();
+
+            // 1. Status Breakdown Doughnut
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            const statusLabels = Object.keys(chartsData.status_breakdown || {});
+            const statusValues = Object.values(chartsData.status_breakdown || {});
+            
+            // Map colors safely
+            const colorMap = {
+                'In Use': '#10b981', // green
+                'Idle': '#94a3b8',   // slate
+                'Maintenance': '#f59e0b', // amber
+                'Out of Service': '#ef4444' // red
+            };
+            const statusColors = statusLabels.map(label => colorMap[label] || '#cbd5e1');
+
+            statusChart = new Chart(ctxStatus, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Active', 'Idle', 'Maintenance'],
+                    labels: statusLabels.length ? statusLabels : ['No Data'],
                     datasets: [{
-                        data: [active, idle, maintenance],
-                        backgroundColor: ['#2563eb', '#cbd5e1', '#f59e0b']
-                    }]
-                }
-            });
-
-            const ctx2 = document.getElementById('impactChart').getContext('2d');
-            impactChart = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: ['Residue (Tons)', 'Area (Acres)', 'Hours'],
-                    datasets: [{
-                        label: 'Metrics',
-                        data: [stats.total_residue_managed, stats.total_area_covered, stats.total_usage_hours],
-                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6']
+                        data: statusValues.length ? statusValues : [1],
+                        backgroundColor: statusValues.length ? statusColors : ['#f1f5f9'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }]
                 },
                 options: {
-                    scales: { y: { beginAtZero: true } }
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    }
+                }
+            });
+
+            // 2. Machine Types Bar Chart
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            const typeLabels = Object.keys(chartsData.machine_types || {});
+            const typeValues = Object.values(chartsData.machine_types || {});
+
+            typeChart = new Chart(ctxType, {
+                type: 'bar',
+                data: {
+                    labels: typeLabels.length ? typeLabels : ['No Data'],
+                    datasets: [{
+                        label: 'Quantity',
+                        data: typeValues.length ? typeValues : [0],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgb(37, 99, 235)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
                 }
             });
         }
 
+        function renderCHCTable(data) {
+            const tbody = document.getElementById('chc-table-body');
+            tbody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500">No CHC data available.</td></tr>';
+                return;
+            }
+
+            // Sort by area covered descending by default
+            const sortedData = [...data].sort((a, b) => b.area_covered - a.area_covered);
+
+            sortedData.forEach(chc => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-blue-50/30 transition-colors group cursor-default';
+                
+                // Calculate utilization percentage for visual indicators
+                const machineUtil = chc.total_machines > 0 ? (chc.active_machines / chc.total_machines) * 100 : 0;
+                
+                tr.innerHTML = `
+                    <td class="p-4 border-b">
+                        <div class="font-bold text-gray-800 text-base">${chc.chc_name}</div>
+                        <div class="text-xs text-muted flex items-center gap-1 mt-1">
+                            <i class="fa-solid fa-location-dot"></i> ${chc.district}
+                        </div>
+                    </td>
+                    <td class="p-4 border-b text-center">
+                        <div class="flex flex-col items-center">
+                            <span class="font-semibold text-gray-800">${chc.active_machines} <span class="text-gray-400 font-normal">/ ${chc.total_machines}</span></span>
+                            <div class="w-16 h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                                <div class="h-full bg-blue-500 rounded-full" style="width: ${machineUtil}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 border-b text-center">
+                        <span class="inline-flex items-center justify-center bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-bold border border-green-100">
+                             ${chc.active_bookings} Active
+                        </span>
+                        <div class="text-xs text-gray-400 mt-1">${chc.total_bookings} Total</div>
+                    </td>
+                    <td class="p-4 border-b text-right font-medium text-gray-700">
+                        ${chc.total_hours} <span class="text-xs text-gray-400 font-normal">hrs</span>
+                    </td>
+                    <td class="p-4 border-b text-right font-bold text-blue-600">
+                        ${chc.area_covered} <span class="text-xs text-blue-400 font-normal">ac</span>
+                    </td>
+                    <td class="p-4 border-b text-right font-bold text-emerald-600">
+                        ${chc.residue_managed} <span class="text-xs text-emerald-400 font-normal">t</span>
+                    </td>
+                    <td class="p-4 border-b text-right">
+                        <button class="btn btn-secondary text-xs px-2 py-1" onclick="openCHCDetails(${chc.chc_id})">Details <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function filterLeaderboard() {
+            const query = document.getElementById('chc-search').value.toLowerCase();
+            if (!query) {
+                renderCHCTable(globalChcData);
+                return;
+            }
+            
+            const filtered = globalChcData.filter(chc => 
+                chc.chc_name.toLowerCase().includes(query) || 
+                chc.district.toLowerCase().includes(query)
+            );
+            renderCHCTable(filtered);
+        }
+
+        // --- All CHCs Grid Logic ---
+        function renderAllCHCsGrid(data) {
+            const grid = document.getElementById('all-chcs-grid');
+            grid.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                grid.innerHTML = '<div class="col-span-full p-8 text-center text-gray-500">No centers found matching your search.</div>';
+                return;
+            }
+
+            data.forEach(chc => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:border-primary transition-colors flex flex-col justify-between';
+                
+                // Add mini visual utilization bar
+                const machineUtil = chc.total_machines > 0 ? (chc.active_machines / chc.total_machines) * 100 : 0;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-gray-800 text-lg leading-tight">${chc.chc_name}</h3>
+                            <span class="bg-blue-50 text-blue-600 text-[10px] uppercase font-bold px-2 py-1 rounded border border-blue-100">${chc.district}</span>
+                        </div>
+                        
+                        <div class="mt-4 space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1 font-semibold text-gray-600">
+                                    <span>Equipment Usage</span>
+                                    <span>${chc.active_machines}/${chc.total_machines}</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                     <div class="h-full bg-blue-500 rounded-full" style="width: ${machineUtil}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2 text-sm pt-2 border-t border-gray-100">
+                                <div>
+                                    <div class="text-xs text-gray-400 font-medium">Usage Hours</div>
+                                    <div class="font-bold text-gray-700">${chc.total_hours}</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-400 font-medium">Area Covered</div>
+                                    <div class="font-bold text-gray-700">${chc.area_covered} ac</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5 pt-4 border-t border-gray-100 flex justify-end">
+                        <button class="text-primary hover:text-blue-700 font-semibold text-sm flex items-center gap-1 group transition-colors" onclick="openCHCDetails(${chc.chc_id})">
+                            Detailed Analytics <i class="fa-solid fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        
+        function filterAllCHCs() {
+            const query = document.getElementById('global-chc-search').value.toLowerCase();
+            if (!query) {
+                renderAllCHCsGrid(globalChcData);
+                return;
+            }
+            
+            const filtered = globalChcData.filter(chc => 
+                chc.chc_name.toLowerCase().includes(query) || 
+                chc.district.toLowerCase().includes(query)
+            );
+            renderAllCHCsGrid(filtered);
+        }
+
+        // --- Detailed CHC Modal Logic ---
+        function switchModalTab(tabName) {
+            document.querySelectorAll('#chc-detail-modal .tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            
+            document.querySelectorAll('#chc-detail-modal nav button').forEach(b => {
+                b.classList.remove('border-primary', 'text-primary');
+                b.classList.add('border-transparent', 'text-gray-500');
+            });
+            const activeBtn = document.getElementById('tab-btn-' + tabName);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+            activeBtn.classList.add('border-primary', 'text-primary');
+        }
+
+        async function openCHCDetails(chcId) {
+            // Setup loading state
+            document.getElementById('modal-chc-name').textContent = "Loading Analytics...";
+            document.getElementById('modal-chc-district').innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>`;
+            document.getElementById('modal-chc-admin').innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>`;
+            document.getElementById('modal-chc-contact').innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i>`;
+            
+            document.getElementById('modal-machines-list').innerHTML = '';
+            document.getElementById('modal-usage-list').innerHTML = '';
+            document.getElementById('modal-bookings-list').innerHTML = '';
+            
+            switchModalTab('machines');
+            UI.showModal('chc-detail-modal');
+
+            try {
+                const data = await API.getGovtCHCDetailedAnalytics(chcId);
+                
+                // Header Info
+                document.getElementById('modal-chc-name').textContent = data.chc_info.name;
+                document.getElementById('modal-chc-district').innerHTML = `<i class="fa-solid fa-location-dot text-gray-400 mr-1"></i> ${data.chc_info.district}`;
+                document.getElementById('modal-chc-admin').innerHTML = `<i class="fa-solid fa-user text-gray-400 mr-1"></i> ${data.chc_info.admin}`;
+                document.getElementById('modal-chc-contact').innerHTML = `<i class="fa-solid fa-phone text-gray-400 mr-1"></i> ${data.chc_info.contact}`;
+
+                // Machines Tab
+                const mList = document.getElementById('modal-machines-list');
+                if(data.machines && data.machines.length > 0) {
+                    data.machines.forEach(m => {
+                        let bClass = m.status === 'Available' ? 'bg-green-50 text-green-600 border-green-200' : 'bg-yellow-50 text-yellow-600 border-yellow-200';
+                        if (m.status === 'In Use') bClass = 'bg-blue-50 text-blue-600 border-blue-200';
+                        if (m.status === 'Maintenance' || m.status === 'Out of Service') bClass = 'bg-red-50 text-red-600 border-red-200';
+                        
+                        mList.innerHTML += `
+                            <div class="p-4 bg-white border border-gray-200 rounded shadow-sm">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="font-bold text-gray-800">${m.name}</div>
+                                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${bClass}">${m.status}</span>
+                                </div>
+                                <div class="text-xs text-gray-500 mb-3">${m.code} | ${m.type}</div>
+                                <div class="grid grid-cols-2 gap-2 text-xs border-t border-gray-100 pt-2">
+                                    <div><span class="text-gray-400 block">Total Hrs</span> <span class="font-semibold">${m.hours}</span></div>
+                                    <div><span class="text-gray-400 block">Last Used</span> <span class="font-semibold">${m.last_used || 'Never'}</span></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    mList.innerHTML = '<div class="col-span-full p-4 text-gray-500 italic">No machines registered.</div>';
+                }
+
+                // Usage Tab
+                const uList = document.getElementById('modal-usage-list');
+                if(data.recent_usage && data.recent_usage.length > 0) {
+                     data.recent_usage.forEach(u => {
+                         uList.innerHTML += `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3 border-b text-gray-700">${u.date}</td>
+                                <td class="p-3 border-b font-medium">${u.farmer}</td>
+                                <td class="p-3 border-b text-gray-600">${u.machine}</td>
+                                <td class="p-3 border-b text-right font-semibold text-blue-600">${u.hours}</td>
+                                <td class="p-3 border-b text-right font-semibold text-emerald-600">${u.area}</td>
+                            </tr>
+                         `;
+                     });
+                } else {
+                     uList.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500 italic">No recent usage.</td></tr>';
+                }
+
+                // Bookings Tab
+                const bList = document.getElementById('modal-bookings-list');
+                if(data.recent_bookings && data.recent_bookings.length > 0) {
+                     data.recent_bookings.forEach(b => {
+                         let statusBadge = `<span class="px-2 py-1 text-[10px] rounded uppercase font-bold border border-gray-200 text-gray-600">${b.status}</span>`;
+                         if(b.status === 'Active') statusBadge = `<span class="px-2 py-1 text-[10px] rounded uppercase font-bold border border-green-200 bg-green-50 text-green-600">${b.status}</span>`;
+                         if(b.status === 'Pending') statusBadge = `<span class="px-2 py-1 text-[10px] rounded uppercase font-bold border border-yellow-200 bg-yellow-50 text-yellow-600">${b.status}</span>`;
+
+                         bList.innerHTML += `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3 border-b text-xs text-gray-500">${b.start_date} <br>to ${b.end_date}</td>
+                                <td class="p-3 border-b font-medium">${b.farmer}</td>
+                                <td class="p-3 border-b text-gray-600">${b.machine}</td>
+                                <td class="p-3 border-b text-right">${statusBadge}</td>
+                            </tr>
+                         `;
+                     });
+                } else {
+                     bList.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500 italic">No recent bookings.</td></tr>';
+                }
+                
+            } catch(e) {
+                console.error(e);
+                UI.hideModal('chc-detail-modal');
+                UI.showToast('Failed to load CHC details', 'error');
+            }
+        }
+
+        // --- Reports Logic ---
+        async function loadReportsData() {
+            try {
+                const data = await API.getGovtReports();
+                reportsLoaded = true;
+
+                // Create District Performance Chart
+                const dists = data.district_performance || [];
+                const districtLabels = dists.map(d => d.district);
+                const districtHours = dists.map(d => d.hours);
+                const districtAreas = dists.map(d => d.area);
+
+                if(districtChart) districtChart.destroy();
+                const ctxDist = document.getElementById('districtChart').getContext('2d');
+                districtChart = new Chart(ctxDist, {
+                    type: 'bar',
+                    data: {
+                        labels: districtLabels.length ? districtLabels : ['No Data'],
+                        datasets: [
+                            {
+                                label: 'Total Hours',
+                                data: districtHours.length ? districtHours : [0],
+                                backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Area Covered (Acres)',
+                                data: districtAreas.length ? districtAreas : [0],
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // Create Idle Ratio Chart
+                const idleMachines = dists.map(d => d.idle_machines);
+                const totalMachines = dists.map(d => d.machines);
+                
+                if(idleChart) idleChart.destroy();
+                const ctxIdle = document.getElementById('idleChart').getContext('2d');
+                idleChart = new Chart(ctxIdle, {
+                    type: 'line',
+                    data: {
+                        labels: districtLabels.length ? districtLabels : ['No Data'],
+                        datasets: [
+                            {
+                                label: 'Total Inventory',
+                                data: totalMachines.length ? totalMachines : [0],
+                                borderColor: 'rgb(148, 163, 184)',
+                                backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Idle Inventory',
+                                data: idleMachines.length ? idleMachines : [0],
+                                borderColor: 'rgb(245, 158, 11)',
+                                backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                                fill: true,
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // Display Recommendations
+                const recContainer = document.getElementById('recommendations-container');
+                recContainer.innerHTML = '';
+                
+                if(data.recommendations && data.recommendations.length > 0) {
+                    data.recommendations.forEach(r => {
+                        let icon = '<i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i>';
+                        let bgClass = 'bg-blue-50 border-blue-100';
+                        if(r.type === 'warning') {
+                            icon = '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5"></i>';
+                            bgClass = 'bg-amber-50 border-amber-100';
+                        } else if(r.type === 'success') {
+                            icon = '<i class="fa-solid fa-circle-check text-green-500 mt-0.5"></i>';
+                            bgClass = 'bg-green-50 border-green-100';
+                        }
+                        
+                        recContainer.innerHTML += `
+                            <div class="p-4 rounded-lg border ${bgClass} flex gap-3 text-sm text-gray-700">
+                                ${icon}
+                                <div>${r.message}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                     recContainer.innerHTML = '<div class="p-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 italic">No urgent insights generated at this time.</div>';
+                }
+
+            } catch(e) {
+                console.error(e);
+                document.getElementById('recommendations-container').innerHTML = '<div class="p-4 text-red-500 text-sm">Failed to load reports.</div>';
+            }
+        }
+
+        // Initialize
         loadGovtStats();
     </script>
 </body>
