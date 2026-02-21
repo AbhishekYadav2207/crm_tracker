@@ -24,7 +24,7 @@
             </nav>
         </aside>
 
-        <main class="main-content">
+        <main class="main-content" id="view-analytics">
             <header class="flex justify-between items-center mb-8">
                 <h2>National CRM Analytics</h2>
                 <div class="flex items-center gap-4">
@@ -69,14 +69,11 @@
             </div>
             
             <!-- CHC Leaderboard Matrix -->
-            <div class="glass-panel p-0 rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
-                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-800 m-0 leading-tight">CHC Performance Matrix</h3>
-                        <p class="text-sm text-gray-500 mt-1">Detailed breakdown of equipment utilization across regions.</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <input type="text" id="chc-search" placeholder="Search CHC or District..." class="form-input text-sm px-3 py-2 w-64" onkeyup="filterLeaderboard()">
+            <div class="glass-panel rounded-xl shadow-sm border border-gray-100 bg-white mb-8 overflow-hidden">
+                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-ranking-star text-yellow-500 mr-2"></i>Top 5 Performing CHCs</h3>
+                    <div class="w-64">
+                         <input type="text" id="chc-search" placeholder="Search Top CHCs..." class="w-full text-sm py-1.5 focus:ring-blue-500" onkeyup="filterLeaderboard()">
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -152,13 +149,14 @@
                    <!-- Populated by JS -->
                    <div class="p-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Analyzing data...</div>
                 </div>
+                <div id="recommendations-pagination" class="flex justify-center gap-2 mt-4 pb-2"></div>
             </div>
         </main>
     </div>
 
     <!-- CHC Detailed Analytics Modal -->
-    <div id="chc-detail-modal" class="modal">
-        <div class="modal-content max-w-4xl w-full p-0 overflow-hidden bg-gray-50 flex flex-col h-[90vh]">
+    <div id="chc-detail-modal" class="modal-overlay">
+        <div class="modal-content max-w-4xl w-full p-0 overflow-hidden bg-gray-50 flex flex-col max-h-[85vh]">
             <!-- Header -->
             <div class="bg-white p-6 justify-between flex items-start border-b border-gray-200 shrink-0">
                 <div>
@@ -243,11 +241,12 @@
 
         let statusChart, typeChart, districtChart, idleChart;
         let globalChcData = [];
+        let globalRecommendations = [];
         let reportsLoaded = false;
 
         const ITEMS_PER_PAGE = 10;
-        let currentLeaderboardPage = 1;
         let currentAllCHCsPage = 1;
+        let currentRecommendationsPage = 1;
 
         // Render Pagination Controls Helper
         function renderPagination(totalItems, currentPage, containerId, pageChangeCallback) {
@@ -409,20 +408,16 @@
 
             if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500">No CHC data available.</td></tr>';
-                const pagContainer = document.getElementById('chc-table-pagination');
-                if (pagContainer) pagContainer.innerHTML = '';
                 return;
             }
 
             // Sort by area covered descending by default
             const sortedData = [...data].sort((a, b) => b.area_covered - a.area_covered);
             
-            // Pagination Slicing
-            const startIndex = (currentLeaderboardPage - 1) * ITEMS_PER_PAGE;
-            const endIndex = startIndex + ITEMS_PER_PAGE;
-            const paginatedData = sortedData.slice(startIndex, endIndex);
+            // Only show Top 5
+            const top5Data = sortedData.slice(0, 5);
 
-            paginatedData.forEach(chc => {
+            top5Data.forEach(chc => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-blue-50/30 transition-colors group cursor-default';
                 
@@ -465,15 +460,9 @@
                 `;
                 tbody.appendChild(tr);
             });
-            
-            renderPagination(sortedData.length, currentLeaderboardPage, 'chc-table-pagination', (newPage) => {
-                currentLeaderboardPage = newPage;
-                renderCHCTable(data); // Re-render with same data
-            });
         }
         
         function filterLeaderboard() {
-            currentLeaderboardPage = 1;
             const query = document.getElementById('chc-search').value.toLowerCase();
             if (!query) {
                 renderCHCTable(globalChcData);
@@ -681,6 +670,46 @@
             }
         }
 
+        function renderRecommendations() {
+            const recContainer = document.getElementById('recommendations-container');
+            recContainer.innerHTML = '';
+            
+            if(!globalRecommendations || globalRecommendations.length === 0) {
+                 recContainer.innerHTML = '<div class="p-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 italic">No urgent insights generated at this time.</div>';
+                 const pagContainer = document.getElementById('recommendations-pagination');
+                 if (pagContainer) pagContainer.innerHTML = '';
+                 return;
+            }
+            
+            const startIndex = (currentRecommendationsPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const paginatedRecs = globalRecommendations.slice(startIndex, endIndex);
+
+            paginatedRecs.forEach(r => {
+                let icon = '<i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i>';
+                let bgClass = 'bg-blue-50 border-blue-100';
+                if(r.type === 'warning') {
+                    icon = '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5"></i>';
+                    bgClass = 'bg-amber-50 border-amber-100';
+                } else if(r.type === 'success') {
+                    icon = '<i class="fa-solid fa-circle-check text-green-500 mt-0.5"></i>';
+                    bgClass = 'bg-green-50 border-green-100';
+                }
+                
+                recContainer.innerHTML += `
+                    <div class="p-4 rounded-lg border ${bgClass} flex gap-3 text-sm text-gray-700">
+                        ${icon}
+                        <div>${r.message}</div>
+                    </div>
+                `;
+            });
+            
+            renderPagination(globalRecommendations.length, currentRecommendationsPage, 'recommendations-pagination', (newPage) => {
+                currentRecommendationsPage = newPage;
+                renderRecommendations();
+            });
+        }
+
         // --- Reports Logic ---
         async function loadReportsData() {
             try {
@@ -701,9 +730,9 @@
                         labels: districtLabels.length ? districtLabels : ['No Data'],
                         datasets: [
                             {
-                                label: 'Total Hours',
+                                label: 'Usage Hours',
                                 data: districtHours.length ? districtHours : [0],
-                                backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.8)',
                                 borderRadius: 4
                             },
                             {
@@ -749,32 +778,9 @@
                     options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // Display Recommendations
-                const recContainer = document.getElementById('recommendations-container');
-                recContainer.innerHTML = '';
-                
-                if(data.recommendations && data.recommendations.length > 0) {
-                    data.recommendations.forEach(r => {
-                        let icon = '<i class="fa-solid fa-circle-info text-blue-500 mt-0.5"></i>';
-                        let bgClass = 'bg-blue-50 border-blue-100';
-                        if(r.type === 'warning') {
-                            icon = '<i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5"></i>';
-                            bgClass = 'bg-amber-50 border-amber-100';
-                        } else if(r.type === 'success') {
-                            icon = '<i class="fa-solid fa-circle-check text-green-500 mt-0.5"></i>';
-                            bgClass = 'bg-green-50 border-green-100';
-                        }
-                        
-                        recContainer.innerHTML += `
-                            <div class="p-4 rounded-lg border ${bgClass} flex gap-3 text-sm text-gray-700">
-                                ${icon}
-                                <div>${r.message}</div>
-                            </div>
-                        `;
-                    });
-                } else {
-                     recContainer.innerHTML = '<div class="p-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 italic">No urgent insights generated at this time.</div>';
-                }
+                // Display Recommendations using Pagination
+                globalRecommendations = data.recommendations || [];
+                renderRecommendations();
 
             } catch(e) {
                 console.error(e);
