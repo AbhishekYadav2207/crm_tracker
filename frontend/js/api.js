@@ -156,6 +156,10 @@ class API {
     }
 
     // Profile Management
+    static async getCHCAdmins() {
+        return await this.fetchAllPages('/auth/admins/', true);
+    }
+
     static async updateProfile(data) {
         return await this.request('/auth/profile/', 'PUT', data, true);
     }
