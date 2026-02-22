@@ -29,3 +29,38 @@ class CHCDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CHC.objects.all()
     serializer_class = CHCSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class AssignAdminView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsGovtAdmin]
+
+    def post(self, request, pk):
+        chc = get_object_or_404(CHC, pk=pk)
+        admin_id = request.data.get('admin_id')
+        
+        if not admin_id:
+            return Response({"error": "Admin ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        with transaction.atomic():
+            new_admin = get_object_or_404(User, id=admin_id, role='CHC_ADMIN')
+            
+            # Detach any existing admins for this CHC
+            existing_admins = User.objects.filter(chc=chc, role='CHC_ADMIN')
+            for admin in existing_admins:
+                admin.chc = None
+                # Optional: admin.is_active = False if they strictly leave the system
+                admin.save()
+            
+            new_admin.chc = chc
+            new_admin.is_active = True
+            new_admin.save()
+            
+        return Response({"message": "Admin assigned successfully", "admin_name": new_admin.get_full_name()})

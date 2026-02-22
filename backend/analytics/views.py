@@ -146,7 +146,8 @@ class GovtCHCDetailedAnalyticsView(APIView):
             "id": chc.id,
             "name": chc.chc_name,
             "district": chc.district,
-            "admin": chc.admin_name,
+            "admin": chc.admin.get_full_name() if chc.admin else None,
+            "total_machines": chc.total_machines,
             "contact": chc.contact_number
         }
 

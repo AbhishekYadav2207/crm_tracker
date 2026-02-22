@@ -7,7 +7,11 @@ class CHC(models.Model):
     location = models.CharField(max_length=255)
     pincode = models.CharField(max_length=6)
     
-    admin_name = models.CharField(max_length=255)
+    # Admin information is now managed through the User model (chc.admins)
+    @property
+    def admin(self):
+        return self.admins.filter(role='CHC_ADMIN', is_active=True).first()
+
     contact_number = models.CharField(max_length=10)
     email = models.EmailField()
     

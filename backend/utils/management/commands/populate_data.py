@@ -308,7 +308,6 @@ class Command(BaseCommand):
                 district=district,
                 location=self.gen.fake.street_address(),
                 pincode=self.gen.fake.postcode()[:6],
-                admin_name=self.gen.fake.name(),
                 contact_number=self.gen.generate_unique_phone(),
                 email=self.gen.generate_unique_email(f"chc{district}"),
                 total_machines=0,

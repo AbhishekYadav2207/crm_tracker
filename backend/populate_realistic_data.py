@@ -51,7 +51,6 @@ def create_chcs():
                 "district": data['district'],
                 "location": data['loc'],
                 "pincode": data['pin'],
-                "admin_name": admin_name,
                 "contact_number": phone,
                 "email": email,
                 "total_machines": 0
@@ -156,7 +155,7 @@ def export_data_to_json():
     data = {
         "generated_at": str(datetime.now()),
         "users": list(User.objects.values('username', 'role', 'email')),
-        "chcs": list(CHC.objects.values('chc_name', 'district', 'admin_name')),
+        "chcs": list(CHC.objects.values('chc_name', 'district')),
         "machines": list(Machine.objects.values('machine_code', 'machine_name', 'status', 'chc__chc_name')),
         "bookings_count": Booking.objects.count(),
         "usage_records_count": MachineUsage.objects.count()
