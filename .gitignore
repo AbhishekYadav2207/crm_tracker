@@ -31,3 +31,5 @@ venv.bak/
 Thumbs.db
 
 /exported_data/
+/latest_data/
+/backend/export_data.py

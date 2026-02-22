@@ -368,4 +368,4 @@ Default passwords from population script:
 
 if __name__ == '__main__':
     # Change the output directory if needed
-    export_to_json('exported_data')
+    export_to_json('latest_data')
