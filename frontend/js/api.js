@@ -172,6 +172,10 @@ class API {
         return await this.request(`/chc/${chcId}/`, 'DELETE', null, true);
     }
 
+    static async removeMachine(machineId) {
+        return await this.request(`/machines/${machineId}/`, 'DELETE', null, true);
+    }
+
     static async updateProfile(data) {
         return await this.request('/auth/profile/', 'PUT', data, true);
     }
