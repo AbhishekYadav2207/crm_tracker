@@ -327,10 +327,10 @@
                                     <i class="fa-solid fa-warehouse"></i>
                                 </div>
                             </div>
-                            <div class="space-y-2 text-sm text-gray-600">
+                            <div class="text-sm text-gray-600 space-y-2 mb-4">
                                 <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-gray-400 w-4"></i> <span>${chc.location}, <strong>${chc.district}</strong></span></p>
-                                <p class="flex items-center gap-2"><i class="fa-solid fa-user-tie text-gray-400 w-4"></i> ${chc.admin_name}</p>
-                                <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-gray-400 w-4"></i> ${phone}</p>
+                                <p class="flex items-center gap-2"><i class="fa-solid fa-user-tie text-gray-400 w-4"></i> ${chc.admin_name || 'No Admin Assigned'}</p>
+                                <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-gray-400 w-4"></i> ${chc.contact_number}</p>
                             </div>
                         </div>
                         <div class="flex gap-3 mt-6 pt-4 border-t border-gray-50">

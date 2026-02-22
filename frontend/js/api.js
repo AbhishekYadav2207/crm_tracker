@@ -142,6 +142,28 @@ class API {
         return await this.request('/analytics/chc/dashboard/', 'GET', null, true);
     }
 
+    // Govt Admin Actions
+    static async registerCHC(data) {
+        return await this.request('/chc/', 'POST', data, true);
+    }
+
+    static async registerCHCAdmin(data) {
+        return await this.request('/auth/register_chc_admin/', 'POST', data, true);
+    }
+
+    static async assignAdminToCHC(chcId, adminId) {
+        return await this.request(`/chc/${chcId}/assign_admin/`, 'POST', { admin_id: adminId }, true);
+    }
+
+    // Profile Management
+    static async updateProfile(data) {
+        return await this.request('/auth/profile/', 'PUT', data, true);
+    }
+
+    static async changePassword(newPassword) {
+        return await this.request('/auth/change_password/', 'POST', { new_password: newPassword }, true);
+    }
+
     // Machines
     static async getMachines(publicView = false, chcId = null) {
         let endpoint = publicView ? '/machines/public/' : '/machines/';

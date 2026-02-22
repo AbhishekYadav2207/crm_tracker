@@ -20,6 +20,10 @@
                 <a href="#" class="nav-item active" onclick="switchView('analytics', this)"><i class="fa-solid fa-chart-line"></i> Analytics</a>
                 <a href="#" class="nav-item" onclick="switchView('all-chcs', this)"><i class="fa-solid fa-building"></i> All CHCs</a>
                 <a href="#" class="nav-item" onclick="switchView('reports', this)"><i class="fa-solid fa-file-invoice"></i> Reports</a>
+                <a href="#" class="nav-item" onclick="switchView('register-chc', this)"><i class="fa-solid fa-plus-circle"></i> Register CHC</a>
+                <a href="#" class="nav-item" onclick="switchView('register-admin', this)"><i class="fa-solid fa-user-plus"></i> Register Admin</a>
+                <a href="#" class="nav-item" onclick="switchView('assign-admin', this)"><i class="fa-solid fa-people-arrows"></i> Assign Admin</a>
+                <a href="#" class="nav-item" onclick="switchView('profile', this)"><i class="fa-solid fa-id-badge"></i> Profile</a>
                 <a href="#" class="nav-item" onclick="API.logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </nav>
         </aside>
@@ -150,6 +154,166 @@
                    <div class="p-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 text-center"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Analyzing data...</div>
                 </div>
                 <div id="recommendations-pagination" class="flex justify-center gap-2 mt-4 pb-2"></div>
+            </div>
+        <!-- Register CHC View -->
+        <main class="main-content hidden" id="view-register-chc">
+            <header class="mb-8">
+                <h2>Register New CHC</h2>
+            </header>
+            <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
+                <form id="form-register-chc" onsubmit="handleRegisterCHC(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">CHC Name</label>
+                        <input type="text" id="chc-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">State</label>
+                            <input type="text" id="chc-state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">District</label>
+                            <input type="text" id="chc-district" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Complete Address</label>
+                        <textarea id="chc-location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Pincode</label>
+                            <input type="text" id="chc-pincode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Contact Number</label>
+                            <input type="text" id="chc-contact" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                        <input type="email" id="chc-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Create CHC
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Register Admin View -->
+        <main class="main-content hidden" id="view-register-admin">
+            <header class="mb-8">
+                <h2>Register CHC Administrator</h2>
+            </header>
+            <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
+                <form id="form-register-admin" onsubmit="handleRegisterAdmin(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">First Name</label>
+                            <input type="text" id="adm-first-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                            <input type="text" id="adm-last-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Username (Required)</label>
+                        <input type="text" id="adm-username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="adm-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="adm-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Phone</label>
+                            <input type="text" id="adm-phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Create Administrator Account
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Assign Admin View -->
+        <main class="main-content hidden" id="view-assign-admin">
+            <header class="mb-8">
+                <h2>Assign Administrator to CHC</h2>
+            </header>
+            <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
+                <form id="form-assign-admin" onsubmit="handleAssignAdmin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Select CHC</label>
+                        <select id="assign-chc-id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                            <option value="">-- Loading CHCs --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 text-muted mt-2 mb-1">Enter Administrator ID</label>
+                        <input type="number" id="assign-admin-id" placeholder="Admin ID" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Assign Administrator
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Profile View -->
+        <main class="main-content hidden" id="view-profile">
+            <header class="mb-8">
+                <h2>My Profile</h2>
+            </header>
+            <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto space-y-8">
+                <form id="form-update-profile" onsubmit="handleUpdateProfile(event)" class="space-y-4">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4">Personal Details</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" id="prof-username" class="mt-1 block w-full rounded-md bg-gray-50 border-gray-300 shadow-sm sm:text-sm" disabled>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">First Name</label>
+                            <input type="text" id="prof-first-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                            <input type="text" id="prof-last-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <input type="email" id="prof-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Mobile Number</label>
+                            <input type="text" id="prof-phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                    <button type="submit" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                        Update Details
+                    </button>
+                </form>
+
+                <form id="form-change-pwd" onsubmit="handleChangePassword(event)" class="space-y-4 border-t pt-6">
+                    <h3 class="text-lg font-bold border-b pb-2 mb-4">Security</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">New Password</label>
+                        <input type="password" id="prof-new-pwd" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required minlength="6">
+                    </div>
+                    <button type="submit" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">
+                        Change Password
+                    </button>
+                </form>
             </div>
         </main>
     </div>
@@ -787,6 +951,122 @@
                 document.getElementById('recommendations-container').innerHTML = '<div class="p-4 text-red-500 text-sm">Failed to load reports.</div>';
             }
         }
+
+        // --- Handlers for New Govt Features ---
+        async function handleRegisterCHC(e) {
+            e.preventDefault();
+            const data = {
+                chc_name: document.getElementById('chc-name').value,
+                state: document.getElementById('chc-state').value,
+                district: document.getElementById('chc-district').value,
+                location: document.getElementById('chc-location').value,
+                pincode: document.getElementById('chc-pincode').value,
+                contact_number: document.getElementById('chc-contact').value,
+                email: document.getElementById('chc-email').value,
+            };
+            try {
+                await API.registerCHC(data);
+                UI.showToast('CHC registered successfully!', 'success');
+                e.target.reset();
+                if(viewId === 'all-chcs') loadGovtStats(); // reload if needed
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to register CHC', 'error');
+            }
+        }
+
+        async function handleRegisterAdmin(e) {
+            e.preventDefault();
+            const data = {
+                username: document.getElementById('adm-username').value,
+                password: document.getElementById('adm-password').value,
+                email: document.getElementById('adm-email').value,
+                first_name: document.getElementById('adm-first-name').value,
+                last_name: document.getElementById('adm-last-name').value,
+                phone_no: document.getElementById('adm-phone').value,
+            };
+            try {
+                await API.registerCHCAdmin(data);
+                UI.showToast('CHC Administrator Account Created!', 'success');
+                e.target.reset();
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to register admin', 'error');
+            }
+        }
+
+        async function handleAssignAdmin(e) {
+            e.preventDefault();
+            const chcId = document.getElementById('assign-chc-id').value;
+            const adminId = document.getElementById('assign-admin-id').value;
+            try {
+                const res = await API.assignAdminToCHC(chcId, adminId);
+                UI.showToast(res.message || 'Admin successfully assigned.', 'success');
+                e.target.reset();
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to assign admin', 'error');
+            }
+        }
+
+        async function loadProfileForView() {
+            try {
+                const profile = await API.getProfile();
+                document.getElementById('prof-username').value = profile.username || '';
+                document.getElementById('prof-first-name').value = profile.first_name || '';
+                document.getElementById('prof-last-name').value = profile.last_name || '';
+                document.getElementById('prof-email').value = profile.email || '';
+                document.getElementById('prof-phone').value = profile.phone_no || '';
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function populateCHCDropdown() {
+            try {
+                const select = document.getElementById('assign-chc-id');
+                const chcs = await API.fetchAllPages('/chc/', true);
+                select.innerHTML = '<option value="">-- Select CHC --</option>';
+                chcs.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.chc_name} (${c.district})</option>`;
+                });
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function handleUpdateProfile(e) {
+            e.preventDefault();
+            const data = {
+                first_name: document.getElementById('prof-first-name').value,
+                last_name: document.getElementById('prof-last-name').value,
+                email: document.getElementById('prof-email').value,
+                phone_no: document.getElementById('prof-phone').value,
+            };
+            try {
+                await API.updateProfile(data);
+                UI.showToast('Profile updated!', 'success');
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to update profile', 'error');
+            }
+        }
+
+        async function handleChangePassword(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('prof-new-pwd').value;
+            try {
+                await API.changePassword(pwd);
+                UI.showToast('Password changed!', 'success');
+                e.target.reset();
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to change password', 'error');
+            }
+        }
+        
+        // Enhance switchView to trigger loads
+        const originalSwitchView = switchView;
+        switchView = function(viewId, element) {
+            originalSwitchView(viewId, element);
+            if (viewId === 'profile') loadProfileForView();
+            if (viewId === 'assign-admin') populateCHCDropdown();
+        };
 
         // Initialize
         loadGovtStats();
