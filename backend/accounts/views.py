@@ -47,3 +47,13 @@ class ChangePasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return Response({"message": "Password changed successfully", "status": "success"}, status=status.HTTP_200_OK)
+
+class CHCAdminListView(generics.ListAPIView):
+    serializer_class = UserSerializer
+
+    def get_permissions(self):
+        from chc.views import IsGovtAdmin
+        return [permissions.IsAuthenticated(), IsGovtAdmin()]
+
+    def get_queryset(self):
+        return User.objects.filter(role='CHC_ADMIN').order_by('id')
