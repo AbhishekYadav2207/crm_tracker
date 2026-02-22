@@ -28,7 +28,12 @@ class CHCListCreateView(generics.ListCreateAPIView):
 class CHCDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CHC.objects.all()
     serializer_class = CHCSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    
+    def get_permissions(self):
+        if self.request.method in ['DELETE', 'PUT', 'PATCH']:
+            # Require GOVT_ADMIN to modify/delete CHC
+            return [permissions.IsAuthenticated(), IsGovtAdmin()]
+        return [permissions.IsAuthenticated()]
 
 from rest_framework.views import APIView
 from rest_framework.response import Response

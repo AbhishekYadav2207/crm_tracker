@@ -57,3 +57,13 @@ class CHCAdminListView(generics.ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(role='CHC_ADMIN').order_by('id')
+
+class RemoveCHCAdminView(APIView):
+    def get_permissions(self):
+        from chc.views import IsGovtAdmin
+        return [permissions.IsAuthenticated(), IsGovtAdmin()]
+
+    def delete(self, request, pk, *args, **kwargs):
+        user = generics.get_object_or_404(User, pk=pk, role='CHC_ADMIN')
+        user.delete()
+        return Response({"message": "CHC Admin removed successfully"}, status=status.HTTP_204_NO_CONTENT)

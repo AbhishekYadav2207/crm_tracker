@@ -20,9 +20,7 @@
                 <a href="#" class="nav-item active" onclick="switchView('analytics', this)"><i class="fa-solid fa-chart-line"></i> Analytics</a>
                 <a href="#" class="nav-item" onclick="switchView('all-chcs', this)"><i class="fa-solid fa-building"></i> All CHCs</a>
                 <a href="#" class="nav-item" onclick="switchView('reports', this)"><i class="fa-solid fa-file-invoice"></i> Reports</a>
-                <a href="#" class="nav-item" onclick="switchView('register-chc', this)"><i class="fa-solid fa-plus-circle"></i> Register CHC</a>
-                <a href="#" class="nav-item" onclick="switchView('register-admin', this)"><i class="fa-solid fa-user-plus"></i> Register Admin</a>
-                <a href="#" class="nav-item" onclick="switchView('assign-admin', this)"><i class="fa-solid fa-people-arrows"></i> Assign Admin</a>
+                <a href="#" class="nav-item" onclick="switchView('actions', this)"><i class="fa-solid fa-bolt"></i> Actions</a>
                 <a href="#" class="nav-item" onclick="switchView('profile', this)"><i class="fa-solid fa-id-badge"></i> Profile</a>
                 <a href="#" class="nav-item" onclick="API.logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </nav>
@@ -157,119 +155,58 @@
             </div>
         </main>
 
-        <!-- Register CHC View -->
-        <main class="main-content hidden" id="view-register-chc">
+        <!-- Actions View -->
+        <main class="main-content hidden" id="view-actions">
             <header class="mb-8">
-                <h2>Register New CHC</h2>
+                <h2>Administrative Actions</h2>
+                <p class="text-gray-500 mt-1">Manage Common Hiring Centers and Administrators</p>
             </header>
-            <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
-                <form id="form-register-chc" onsubmit="handleRegisterCHC(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">CHC Name</label>
-                        <input type="text" id="chc-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Register CHC Card -->
+                <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-indigo-400 cursor-pointer transition-colors" onclick="UI.showModal('modal-register-chc')">
+                    <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 mb-4 text-2xl">
+                        <i class="fa-solid fa-plus-circle"></i>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">State</label>
-                            <input type="text" id="chc-state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">District</label>
-                            <input type="text" id="chc-district" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                        </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Register CHC</h3>
+                    <p class="text-sm text-gray-500">Add a new Common Hiring Center into the ecosystem.</p>
+                </div>
+                
+                <!-- Register Admin Card -->
+                <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-blue-400 cursor-pointer transition-colors" onclick="UI.showModal('modal-register-admin')">
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 mb-4 text-2xl">
+                        <i class="fa-solid fa-user-plus"></i>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Complete Address</label>
-                        <textarea id="chc-location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required></textarea>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Register Admin</h3>
+                    <p class="text-sm text-gray-500">Create a new CHC Administrator profile and credentials.</p>
+                </div>
+                
+                <!-- Assign Admin Card -->
+                <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-emerald-400 cursor-pointer transition-colors" onclick="UI.showModal('modal-assign-admin'); populateAssignDropdowns();">
+                    <div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4 text-2xl">
+                        <i class="fa-solid fa-people-arrows"></i>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Pincode</label>
-                            <input type="text" id="chc-pincode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Contact Number</label>
-                            <input type="text" id="chc-contact" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                        <input type="email" id="chc-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                    </div>
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Create CHC
-                    </button>
-                </form>
-            </div>
-        </main>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Assign Admin</h3>
+                    <p class="text-sm text-gray-500">Delegate personnel to govern a specified CHC.</p>
+                </div>
 
-        <!-- Register Admin View -->
-        <main class="main-content hidden" id="view-register-admin">
-            <header class="mb-8">
-                <h2>Register CHC Administrator</h2>
-            </header>
-            <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
-                <form id="form-register-admin" onsubmit="handleRegisterAdmin(event)" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">First Name</label>
-                            <input type="text" id="adm-first-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Last Name</label>
-                            <input type="text" id="adm-last-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
+                <!-- Remove CHC Card -->
+                <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-red-400 cursor-pointer transition-colors" onclick="UI.showModal('modal-remove-chc'); populateRemoveCHCDropdown();">
+                    <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-600 mb-4 text-2xl">
+                        <i class="fa-solid fa-building-circle-xmark"></i>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Username (Required)</label>
-                        <input type="text" id="adm-username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Password</label>
-                        <input type="password" id="adm-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Email</label>
-                            <input type="email" id="adm-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Phone</label>
-                            <input type="text" id="adm-phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Create Administrator Account
-                    </button>
-                </form>
-            </div>
-        </main>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Remove CHC</h3>
+                    <p class="text-sm text-gray-500">Decommission an existing hiring center facility.</p>
+                </div>
 
-        <!-- Assign Admin View -->
-        <main class="main-content hidden" id="view-assign-admin">
-            <header class="mb-8">
-                <h2>Assign Administrator to CHC</h2>
-            </header>
-            <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
-                <form id="form-assign-admin" onsubmit="handleAssignAdmin(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Search & Select CHC</label>
-                        <input list="chc-list" id="assign-chc-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Type to search CHCs..." required>
-                        <datalist id="chc-list">
-                            <!-- Populated by JS -->
-                        </datalist>
+                <!-- Remove Admin Card -->
+                <div class="glass-panel p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-orange-400 cursor-pointer transition-colors" onclick="UI.showModal('modal-remove-admin'); populateRemoveAdminDropdown();">
+                    <div class="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 mb-4 text-2xl">
+                        <i class="fa-solid fa-user-minus"></i>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 text-muted mt-2 mb-1">Search & Select Administrator</label>
-                        <input list="admin-list" id="assign-admin-input" placeholder="Type to search administrators..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                        <datalist id="admin-list">
-                            <!-- Populated by JS -->
-                        </datalist>
-                    </div>
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Assign Administrator
-                    </button>
-                </form>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Remove Admin</h3>
+                    <p class="text-sm text-gray-500">Revoke permissions from a CHC Administrator.</p>
+                </div>
             </div>
         </main>
 
@@ -322,6 +259,159 @@
                 </form>
             </div>
         </main>
+    </div>
+
+    <!-- ACTION MODALS -->
+    <!-- Modal: Register CHC -->
+    <div id="modal-register-chc" class="modal-overlay hidden">
+        <div class="modal-content max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold">Register New CHC</h2>
+                <button onclick="UI.hideModal('modal-register-chc')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form id="form-register-chc" onsubmit="handleRegisterCHC(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">CHC Name</label>
+                    <input type="text" id="chc-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">State</label>
+                        <input type="text" id="chc-state" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">District</label>
+                        <input type="text" id="chc-district" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                </div>
+                <div>
+                        <label class="block text-sm font-medium text-gray-700">Complete Address</label>
+                        <textarea id="chc-location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Pincode</label>
+                        <input type="text" id="chc-pincode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Contact Number</label>
+                        <input type="text" id="chc-contact" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                    <input type="email" id="chc-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Create CHC</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Register Admin -->
+    <div id="modal-register-admin" class="modal-overlay hidden">
+        <div class="modal-content max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold">Register CHC Administrator</h2>
+                <button onclick="UI.hideModal('modal-register-admin')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form id="form-register-admin" onsubmit="handleRegisterAdmin(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="adm-first-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="adm-last-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username (Required)</label>
+                    <input type="text" id="adm-username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="adm-password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="adm-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <input type="text" id="adm-phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Assign Admin -->
+    <div id="modal-assign-admin" class="modal-overlay hidden">
+        <div class="modal-content max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold">Assign Administrator</h2>
+                <button onclick="UI.hideModal('modal-assign-admin')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form onsubmit="handleAssignAdmin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Search & Select CHC</label>
+                    <input list="chc-list" id="assign-chc-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" required>
+                    <datalist id="chc-list"></datalist>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Search & Select Administrator</label>
+                    <input list="admin-list" id="assign-admin-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" required>
+                    <datalist id="admin-list"></datalist>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700">Assign Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Remove CHC -->
+    <div id="modal-remove-chc" class="modal-overlay hidden">
+        <div class="modal-content max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold">Remove CHC</h2>
+                <button onclick="UI.hideModal('modal-remove-chc')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form onsubmit="handleRemoveCHC(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Search & Select CHC to Decommission</label>
+                    <input list="remove-chc-list" id="remove-chc-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" required>
+                    <datalist id="remove-chc-list"></datalist>
+                </div>
+                <!-- Warning Blurb -->
+                <div class="p-4 bg-red-50 border border-red-200 rounded-md mt-4">
+                    <p class="text-sm text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i><strong>Warning</strong>: Removing a CHC is an irreversible process. All associated data will be deleted.</p>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700">Decommission CHC</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Remove Admin -->
+    <div id="modal-remove-admin" class="modal-overlay hidden">
+        <div class="modal-content max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold">Remove CHC Administrator</h2>
+                <button onclick="UI.hideModal('modal-remove-admin')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form onsubmit="handleRemoveAdmin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Search & Select Administrator to Remove</label>
+                    <input list="remove-admin-list" id="remove-admin-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" required>
+                    <datalist id="remove-admin-list"></datalist>
+                </div>
+                <div class="p-4 bg-orange-50 border border-orange-200 rounded-md mt-4">
+                    <p class="text-sm text-orange-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i><strong>Caution</strong>: The profile will be permanently deleted and access revoked.</p>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700">Delete Account</button>
+            </form>
+        </div>
     </div>
 
     <!-- CHC Detailed Analytics Modal -->
@@ -458,7 +548,7 @@
         }
 
         function closeCHCModal() {
-            document.getElementById('chc-detail-modal').style.display = 'none';
+            UI.hideModal('chc-detail-modal');
         }
         
         // --- View Switching ---
@@ -476,8 +566,6 @@
                loadReportsData();
             } else if (viewId === 'profile') {
                loadProfileForView();
-            } else if (viewId === 'assign-admin') {
-               populateAssignDropdowns();
             }
         }
 
@@ -1062,6 +1150,78 @@
                 });
             } catch(e) {
                 console.error(e);
+            }
+        }
+
+        async function populateRemoveCHCDropdown() {
+            try {
+                const chcList = document.getElementById('remove-chc-list');
+                const chcs = await API.fetchAllPages('/chc/', true);
+                chcList.innerHTML = '';
+                chcs.forEach(c => {
+                    chcList.innerHTML += `<option value="${c.id} - ${c.chc_name} (${c.district})"></option>`;
+                });
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function populateRemoveAdminDropdown() {
+            try {
+                const adminList = document.getElementById('remove-admin-list');
+                const admins = await API.getCHCAdmins();
+                adminList.innerHTML = '';
+                admins.forEach(a => {
+                    const name = a.first_name || a.last_name ? `${a.first_name} ${a.last_name}` : a.username;
+                    adminList.innerHTML += `<option value="${a.id} - ${name} (${a.email})"></option>`;
+                });
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function handleRemoveCHC(e) {
+            e.preventDefault();
+            const chcInputString = document.getElementById('remove-chc-input').value;
+            const chcIdMatch = chcInputString.match(/^(\d+)\s*-/);
+            
+            if (!chcIdMatch) {
+                UI.showToast('Please select a valid CHC option', 'error');
+                return;
+            }
+            
+            if(!confirm('Are you ABSOLUTELY sure you want to delete this CHC? This action is permanent and irreversible.')) return;
+            
+            try {
+                await API.removeCHC(chcIdMatch[1]);
+                UI.showToast('CHC Demolished Successfully', 'success');
+                UI.hideModal('modal-remove-chc');
+                e.target.reset();
+                loadGovtStats(); // reload dashboard
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to remove CHC', 'error');
+            }
+        }
+
+        async function handleRemoveAdmin(e) {
+            e.preventDefault();
+            const adminInputString = document.getElementById('remove-admin-input').value;
+            const adminIdMatch = adminInputString.match(/^(\d+)\s*-/);
+            
+            if (!adminIdMatch) {
+                UI.showToast('Please select a valid Administrator', 'error');
+                return;
+            }
+            
+            if(!confirm('Are you sure you want to permanently delete this administrator profile?')) return;
+            
+            try {
+                await API.removeCHCAdmin(adminIdMatch[1]);
+                UI.showToast('Administrator Access Revoked', 'success');
+                UI.hideModal('modal-remove-admin');
+                e.target.reset();
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to remove Admin', 'error');
             }
         }
 

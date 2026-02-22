@@ -160,6 +160,14 @@ class API {
         return await this.fetchAllPages('/auth/admins/', true);
     }
 
+    static async removeCHCAdmin(adminId) {
+        return await this.request(`/auth/remove_chc_admin/${adminId}/`, 'DELETE', null, true);
+    }
+
+    static async removeCHC(chcId) {
+        return await this.request(`/chc/${chcId}/`, 'DELETE', null, true);
+    }
+
     static async updateProfile(data) {
         return await this.request('/auth/profile/', 'PUT', data, true);
     }
