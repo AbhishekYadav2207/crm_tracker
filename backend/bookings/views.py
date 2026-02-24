@@ -41,15 +41,53 @@ class PublicBookingStatusView(generics.RetrieveAPIView):
 class CHCBookingListView(generics.ListAPIView):
     serializer_class = BookingSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    filterset_fields = ['status', 'machine']
-    ordering_fields = ['booking_date', 'start_date']
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_fields = ['machine']
+    ordering_fields = ['booking_date', 'start_date', 'farmer_name', 'status']
+    search_fields = ['farmer_name', 'farmer_contact', 'booking_id', 'machine__machine_name']
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'CHC_ADMIN' and user.chc:
-            return Booking.objects.filter(chc=user.chc)
-        return Booking.objects.none()
+        if not (user.role == 'CHC_ADMIN' and user.chc):
+            return Booking.objects.none()
+            
+        queryset = Booking.objects.filter(chc=user.chc)
+        
+        # 1. Custom Filtering by start_date, end_date
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        if start_date:
+            queryset = queryset.filter(start_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(end_date__lte=end_date)
+            
+        machine_type = self.request.query_params.get('machine_type')
+        if machine_type:
+            queryset = queryset.filter(machine__machine_type=machine_type)
+            
+        # 2. Categorization Logic
+        category = self.request.query_params.get('category')
+        if category == 'Pending':
+            queryset = queryset.filter(status='Pending')
+        elif category == 'Active':
+            # Assuming 'Approved' and 'Active' bookings are considered Active in Categorization logic.
+            # Active tabs usually list bookings ready to be handed over or currently in use
+            queryset = queryset.filter(status__in=['Approved', 'Active'])
+        elif category == 'Completed':
+            queryset = queryset.filter(status__in=['Completed', 'Cancelled', 'Rejected'])
+
+        # 3. Custom Sorting Mapping
+        sort_param = self.request.query_params.get('sort')
+        if sort_param == 'booking_date_latest':
+            queryset = queryset.order_by('-booking_date')
+        elif sort_param == 'booking_date_oldest':
+            queryset = queryset.order_by('booking_date')
+        elif sort_param == 'farmer_name_asc':
+            queryset = queryset.order_by('farmer_name')
+        elif sort_param == 'farmer_name_desc':
+            queryset = queryset.order_by('-farmer_name')
+            
+        return queryset
 
 class CHCBookingActionView(generics.UpdateAPIView):
     queryset = Booking.objects.all()
