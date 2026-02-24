@@ -1,5 +1,6 @@
 const API_BASE_URL =
-    window.location.hostname === "127.0.0.1" ||
+    window.location.protocol === 'file:' ||
+        window.location.hostname === "127.0.0.1" ||
         window.location.hostname === "localhost"
         ? "http://127.0.0.1:8000/api/v1"
         : "/api/v1";
@@ -224,8 +225,9 @@ class API {
     }
 
     // CHC Admin Bookings
-    static async getCHCBookings() {
-        return await this.fetchAllPages('/bookings/chc/', true);
+    static async getCHCBookings(queryParams = '') {
+        const url = queryParams ? `/bookings/chc/?${queryParams}` : '/bookings/chc/';
+        return await this.fetchAllPages(url, true);
     }
 
     static async updateBookingStatus(id, action, notes = '') {
