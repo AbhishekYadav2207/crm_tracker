@@ -33,3 +33,4 @@ Thumbs.db
 /exported_data/
 /latest_data/
 /backend/export_data.py
+/backend/latest_data/
