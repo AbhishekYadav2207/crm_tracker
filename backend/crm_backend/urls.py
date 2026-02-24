@@ -15,17 +15,6 @@ schema_view = get_schema_view(
    ),
    public=True,
    permission_classes=(permissions.AllowAny,),
-   # Add this
-   SWAGGER_SETTINGS = {
-      'SECURITY_DEFINITIONS': {
-         'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
-            'description': 'Enter: Bearer <access_token>',
-         }
-      }
-   }
 )
 
 urlpatterns = [
@@ -44,3 +33,4 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
+# Triggering dev server autoreload
