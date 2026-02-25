@@ -1,6 +1,12 @@
 from django.db import models
 
-import uuid
+import random
+import string
+
+def generate_short_booking_id():
+    chars = string.ascii_uppercase + string.digits
+    unique_part = ''.join(random.choices(chars, k=6))
+    return f"BKG-{unique_part}"
 
 class Booking(models.Model):
     STATUS_CHOICES = (
@@ -12,7 +18,7 @@ class Booking(models.Model):
         ('Cancelled', 'Cancelled'),
     )
     
-    booking_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    booking_id = models.CharField(max_length=50, default=generate_short_booking_id, unique=True, editable=False)
     chc = models.ForeignKey('chc.CHC', on_delete=models.CASCADE, related_name='bookings')
     machine = models.ForeignKey('machines.Machine', on_delete=models.CASCADE, related_name='bookings')
     
