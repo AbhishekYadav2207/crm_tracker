@@ -218,6 +218,11 @@ class API {
         return await this.request('/bookings/public/create/', 'POST', data, false);
     }
 
+    // Get public booking status
+    static async getBookingStatus(bookingId) {
+        return await this.request(`/bookings/public/${bookingId}/status/`, 'GET', null, false);
+    }
+
     // CHC Search
     static async searchCHCs(query) {
         const params = new URLSearchParams(query).toString();
