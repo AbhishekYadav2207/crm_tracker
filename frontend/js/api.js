@@ -238,4 +238,13 @@ class API {
     static async updateBookingStatus(id, action, notes = '') {
         return await this.request(`/bookings/chc/${id}/action/`, 'PATCH', { action, notes }, true);
     }
+
+    // --- Machine Usage (Linked to booking) ---
+    static async createMachineUsage(data) {
+        return await this.request('/usage/', 'POST', data, true);
+    }
+
+    static async getBookingUsage(bookingId) {
+        return await this.request(`/usage/?booking=${bookingId}`, 'GET', null, true);
+    }
 }

@@ -5,7 +5,7 @@ from .serializers import MachineUsageSerializer
 class MachineUsageListCreateView(generics.ListCreateAPIView):
     serializer_class = MachineUsageSerializer
     permission_classes = (permissions.IsAuthenticated,)
-    filterset_fields = ['machine', 'chc']
+    filterset_fields = ['machine', 'chc', 'booking']
 
     def get_queryset(self):
         user = self.request.user

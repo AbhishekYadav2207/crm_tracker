@@ -366,8 +366,141 @@
     
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="js/ui.js"></script>
-    <script src="js/api.js"></script>
+    <!-- Record Usage Modal -->
+    <div id="record-usage-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-2xl w-full p-6" style="max-height: 90vh; overflow-y: auto;">
+             <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-success mr-2"></i>Record Machine Usage</h2>
+                <button onclick="UI.hideModal('record-usage-modal')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            
+            <form id="form-record-usage" onsubmit="handleRecordUsage(event)" class="space-y-6">
+                <!-- Hidden references -->
+                <input type="hidden" id="usage-booking-id">
+                <input type="hidden" id="usage-machine-id">
+                
+                <!-- Fixed Info Block -->
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col gap-2 shadow-inner">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-xs text-blue-600 font-bold uppercase block">Farmer</span>
+                            <span id="usage-farmer-name" class="font-bold text-gray-800"></span>
+                            <span id="usage-farmer-contact" class="text-xs text-muted block"></span>
+                        </div>
+                        <div>
+                             <span class="text-xs text-blue-600 font-bold uppercase block">Machine</span>
+                             <span id="usage-machine-name" class="font-bold text-gray-800"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Grid -->
+                <div>
+                     <h3 class="font-bold text-sm text-gray-700 border-b pb-2 mb-4">Operational Metrics</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Usage Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="usage-date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Start Time <span class="text-red-500">*</span></label>
+                                <input type="time" id="usage-start-time" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">End Time <span class="text-red-500">*</span></label>
+                                <input type="time" id="usage-end-time" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Start Meter Reading</label>
+                            <input type="number" step="0.01" id="usage-start-meter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="e.g. 1500.5">
+                        </div>
+                        <div>
+                             <label class="block text-sm font-medium text-gray-700">End Meter Reading</label>
+                             <input type="number" step="0.01" id="usage-end-meter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="e.g. 1510.5">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Area Covered (Acres) <span class="text-red-500">*</span></label>
+                            <input type="number" step="0.01" id="usage-area" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="e.g. 5.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Fuel Consumed (Liters)</label>
+                            <input type="number" step="0.01" id="usage-fuel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="e.g. 20">
+                        </div>
+                     </div>
+                </div>
+
+                <div>
+                     <h3 class="font-bold text-sm text-gray-700 border-b pb-2 mb-4">Additional Data</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Crop Type</label>
+                            <input type="text" id="usage-crop-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="e.g. Wheat, Paddy">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Residue Managed (Tons)</label>
+                            <input type="number" step="0.01" id="usage-residue" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="e.g. 10.5">
+                        </div>
+                         
+                         <!-- GPS Coordinates (Optional for manual entry) -->
+                        <div class="col-span-2 grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded border border-gray-200">
+                             <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase">GPS Latitude</label>
+                                <input type="number" step="0.000001" id="usage-gps-lat" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-xs text-gray-600 bg-white" placeholder="28.7041">
+                            </div>
+                            <div>
+                                 <label class="block text-xs font-semibold text-gray-500 uppercase">GPS Longitude</label>
+                                 <input type="number" step="0.000001" id="usage-gps-lng" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-xs text-gray-600 bg-white" placeholder="77.1025">
+                            </div>
+                            <div class="col-span-2 text-xs text-muted italic">
+                                Note: In a production app, GPS can be auto-captured from the operator's device.
+                            </div>
+                        </div>
+
+                        <div class="col-span-2">
+                             <label class="block text-sm font-medium text-gray-700">Operator Name</label>
+                             <input type="text" id="usage-operator" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm" placeholder="Name of driver/operator">
+                        </div>
+                        <div class="col-span-2">
+                             <label class="block text-sm font-medium text-gray-700">Remarks / Job Notes</label>
+                             <textarea id="usage-remarks" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"></textarea>
+                        </div>
+                     </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" class="btn btn-secondary" onclick="UI.hideModal('record-usage-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary bg-success border-success text-white shadow-md hover:shadow-lg">
+                        <i class="fa-solid fa-check-double mr-2"></i> Submit & Complete Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Linked Usage Modal -->
+    <div id="view-usage-modal" class="modal-overlay hidden">
+         <div class="modal-content max-w-lg w-full p-6">
+             <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-file-invoice text-primary mr-2"></i>Usage Summary</h2>
+                <button onclick="UI.hideModal('view-usage-modal')" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+            </div>
+            
+            <div id="view-usage-content" class="flex flex-col gap-4 text-sm">
+                 <!-- Content Injected Here -->
+            </div>
+            
+             <div class="mt-6 pt-4 border-t flex justify-end">
+                <button class="btn btn-secondary" onclick="UI.hideModal('view-usage-modal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/ui.js?v=1.2"></script>
+    <script src="js/api.js?v=1.2"></script>
     <script>
         // Check Auth
         if (!localStorage.getItem('access_token')) {
@@ -937,8 +1070,13 @@
                 `;
             } else if (booking.status === 'Active') {
                 buttons = `
-                    <button class="btn btn-primary bg-success" onclick="updateBookingStatus('${booking.id}', 'complete')">Mark Completed</button>
+                    <button class="btn btn-primary bg-success" onclick="openRecordUsageModal('${booking.id}')">Record Usage & Complete</button>
                 `;
+            } else if (booking.status === 'Completed') {
+                 buttons = `
+                    <button class="btn btn-primary" onclick="openViewUsageModal('${booking.id}')">View Usage</button>
+                    <button class="btn btn-secondary" onclick="UI.hideModal('booking-details-modal')">Close</button>
+                 `;
             } else {
                  buttons = `<button class="btn btn-secondary" onclick="UI.hideModal('booking-details-modal')">Close</button>`;
             }
@@ -1190,6 +1328,163 @@
             });
         });
         
+        // --- Usage Recording & Viewing Logic ---
+        
+        function openRecordUsageModal(bookingId) {
+            const booking = currentBookings.find(b => b.id == bookingId);
+            if (!booking) return;
+            
+            // Set hidden fields
+            document.getElementById('usage-booking-id').value = booking.id;
+            document.getElementById('usage-machine-id').value = booking.machine; // Assuming 'machine' is the ID in the booking object
+            
+            // Populate display fields
+            document.getElementById('usage-farmer-name').textContent = booking.farmer_name;
+            document.getElementById('usage-farmer-contact').textContent = booking.farmer_contact;
+            document.getElementById('usage-machine-name').textContent = booking.machine_details ? booking.machine_details.machine_name : 'N/A';
+            
+            // Pre-fill some defaults where possible
+            document.getElementById('usage-date').value = booking.end_date || new Date().toISOString().split('T')[0];
+            document.getElementById('usage-area').value = booking.field_area || '';
+            document.getElementById('usage-crop-type').value = booking.crop_type || '';
+            
+            // Reset other form fields
+            document.getElementById('usage-start-time').value = '';
+            document.getElementById('usage-end-time').value = '';
+            document.getElementById('usage-start-meter').value = '';
+            document.getElementById('usage-end-meter').value = '';
+            document.getElementById('usage-fuel').value = '';
+            document.getElementById('usage-residue').value = '';
+            document.getElementById('usage-gps-lat').value = '';
+            document.getElementById('usage-gps-lng').value = '';
+            document.getElementById('usage-operator').value = '';
+            document.getElementById('usage-remarks').value = '';
+            
+            UI.hideModal('booking-details-modal'); // Hide the booking modal
+            UI.showModal('record-usage-modal');
+        }
+
+        async function handleRecordUsage(e) {
+            e.preventDefault();
+            
+            const bookingId = document.getElementById('usage-booking-id').value;
+            const machineId = document.getElementById('usage-machine-id').value;
+            const booking = currentBookings.find(b => b.id == bookingId);
+            
+            const payload = {
+                booking: bookingId,
+                machine: machineId,
+                farmer_name: document.getElementById('usage-farmer-name').textContent,
+                farmer_contact: document.getElementById('usage-farmer-contact').textContent,
+                farmer_aadhar: booking ? booking.farmer_aadhar : '', // carry over from booking
+                
+                usage_date: document.getElementById('usage-date').value,
+                start_time: document.getElementById('usage-start-time').value,
+                end_time: document.getElementById('usage-end-time').value,
+                
+                area_covered: document.getElementById('usage-area').value,
+                
+                // Optional fields
+                start_meter_reading: document.getElementById('usage-start-meter').value || null,
+                end_meter_reading: document.getElementById('usage-end-meter').value || null,
+                fuel_consumed: document.getElementById('usage-fuel').value || null,
+                crop_type: document.getElementById('usage-crop-type').value || null,
+                residue_managed: document.getElementById('usage-residue').value || null,
+                gps_lat: document.getElementById('usage-gps-lat').value || null,
+                gps_lng: document.getElementById('usage-gps-lng').value || null,
+                operator_name: document.getElementById('usage-operator').value || null,
+                remarks: document.getElementById('usage-remarks').value || null,
+            };
+            
+            try {
+                // 1. Create Usage Record
+                await API.createMachineUsage(payload);
+                
+                // 2. Mark Booking as Completed
+                await API.updateBookingStatus(bookingId, 'complete', 'Usage recorded systematically.');
+                
+                UI.showToast('Usage recorded and booking completed!', 'success');
+                UI.hideModal('record-usage-modal');
+                
+                // Reload dashboard state
+                await loadBookings();
+                await loadDashboard();
+            } catch (err) {
+                UI.showToast(err.message || 'Failed to record usage', 'error');
+            }
+        }
+
+        async function openViewUsageModal(bookingId) {
+            try {
+                const results = await API.getBookingUsage(bookingId);
+                const usageArray = Array.isArray(results) ? results : (results.results || []);
+                
+                if (!usageArray || usageArray.length === 0) {
+                    UI.showToast('No usage data found for this booking.', 'info');
+                    return;
+                }
+                
+                // Usually one usage per booking, take the first
+                const u = usageArray[0];
+                
+                const contentDiv = document.getElementById('view-usage-content');
+                contentDiv.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100 mb-2">
+                        <div>
+                            <span class="text-xs text-muted uppercase font-bold block mb-1">Date & Time</span>
+                            <div class="font-medium text-gray-800"><i class="fa-regular fa-calendar text-gray-400 mr-2"></i>${u.usage_date}</div>
+                            <div class="text-xs text-gray-600 mt-1"><i class="fa-regular fa-clock text-gray-400 mr-2"></i>${u.start_time} - ${u.end_time} (${u.total_hours_used} hrs)</div>
+                        </div>
+                        <div>
+                            <span class="text-xs text-muted uppercase font-bold block mb-1">Impact & Output</span>
+                            <div class="font-medium text-gray-800">${u.area_covered || 0} <span class="text-xs text-muted">Acres</span></div>
+                            <div class="text-xs text-gray-600 mt-1">${u.residue_managed || 0} <span class="text-xs text-muted">Tons managed</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-3 border rounded">
+                            <span class="text-xs text-muted block mb-1">Crop Type</span>
+                            <span class="font-semibold">${u.crop_type || 'N/A'}</span>
+                        </div>
+                        <div class="p-3 border rounded">
+                            <span class="text-xs text-muted block mb-1">Fuel Consumed</span>
+                            <span class="font-semibold">${u.fuel_consumed ? u.fuel_consumed + ' L' : 'N/A'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 border rounded mt-2">
+                         <span class="text-xs text-muted block mb-1">Meter Readings</span>
+                         <span class="font-semibold text-gray-700">Start:</span> ${u.start_meter_reading || '--'} &nbsp;|&nbsp; 
+                         <span class="font-semibold text-gray-700">End:</span> ${u.end_meter_reading || '--'}
+                    </div>
+
+                    ${(u.gps_lat || u.gps_lng) ? `
+                    <div class="p-3 bg-gray-50 border rounded mt-2">
+                        <span class="text-xs text-muted block mb-1"><i class="fa-solid fa-map-pin mr-1 text-red-400"></i>GPS Location</span>
+                        <span class="font-mono text-xs">${u.gps_lat || 'N/A'}, ${u.gps_lng || 'N/A'}</span>
+                    </div>` : ''}
+                    
+                    ${u.operator_name ? `
+                    <div class="flex items-center gap-2 mt-2 pt-2 border-t">
+                        <i class="fa-solid fa-user-circle text-gray-400"></i>
+                        <span class="text-xs text-muted">Operator:</span> <span class="font-semibold">${u.operator_name}</span>
+                    </div>` : ''}
+                    
+                    ${u.remarks ? `
+                    <div class="mt-2 text-gray-600 p-3 bg-yellow-50 rounded border border-yellow-100 italic text-xs">
+                        "${u.remarks}"
+                    </div>` : ''}
+                `;
+                
+                UI.hideModal('booking-details-modal');
+                UI.showModal('view-usage-modal');
+            } catch (err) {
+                console.error(err);
+                UI.showToast('Failed to retrieve usage data for booking', 'error');
+            }
+        }
+
         // Initial Load
         loadView('dashboard');
     </script>
