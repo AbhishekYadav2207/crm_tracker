@@ -20,7 +20,7 @@ class PublicBookingCreateView(generics.CreateAPIView):
         # Availability Check
         overlapping_bookings = Booking.objects.filter(
             machine=machine,
-            status__in=['Pending', 'Approved', 'Active'],
+            status__in=['Approved', 'Active'],
             start_date__lte=end_date,
             end_date__gte=start_date
         )
@@ -103,6 +103,16 @@ class CHCBookingActionView(generics.UpdateAPIView):
             return Response({"error": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
 
         if action == 'approve':
+            overlapping_bookings = Booking.objects.filter(
+                machine=booking.machine,
+                status__in=['Approved', 'Active'],
+                start_date__lte=booking.end_date,
+                end_date__gte=booking.start_date
+            ).exclude(id=booking.id)
+            
+            if overlapping_bookings.exists():
+                return Response({"error": "Machine is already booked and approved for the selected dates."}, status=status.HTTP_400_BAD_REQUEST)
+
             booking.status = 'Approved'
             booking.approved_by = request.user
             # Check availability again logic
@@ -113,6 +123,10 @@ class CHCBookingActionView(generics.UpdateAPIView):
         elif action == 'handover':
             if booking.status != 'Approved':
                 return Response({"error": "Only approved bookings can be handed over."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if booking.machine.status == 'In Use' or Booking.objects.filter(machine=booking.machine, status='Active').exists():
+                return Response({"error": "Machine is already handed over to someone else."}, status=status.HTTP_400_BAD_REQUEST)
+
             booking.status = 'Active'
             booking.machine.status = 'In Use'
             booking.machine.save()
@@ -150,7 +164,7 @@ class MachineBookedDatesView(APIView):
     def get(self, request, machine_id):
         bookings = Booking.objects.filter(
             machine_id=machine_id,
-            status__in=['Pending', 'Approved', 'Active']
+            status__in=['Approved', 'Active']
         ).values('start_date', 'end_date')
         
         return Response(list(bookings))

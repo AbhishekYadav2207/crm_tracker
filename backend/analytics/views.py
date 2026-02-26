@@ -235,22 +235,25 @@ class GovtReportsView(APIView):
                 "area": float(area)
             })
 
-        # 2. Recommendations (Basic Logic)
+        # 2. Recommendations (Consistent Logic)
         recommendations = []
-        # Find districts with high idle machines but low hours
         for dp in district_performance:
-            if dp['machines'] > 0:
-                idle_ratio = dp['idle_machines'] / dp['machines']
-                if idle_ratio > 0.5:
-                    recommendations.append({
-                        "type": "warning",
-                        "message": f"{dp['district']} has {idle_ratio*100:.0f}% idle equipment ({dp['idle_machines']} machines). Consider promotional campaigns or migrating equipment to high-demand areas."
-                    })
-            if dp['hours'] > (dp['machines'] * 100): # simplistic high usage threshold
-                 recommendations.append({
-                        "type": "success",
-                        "message": f"{dp['district']} is showing exceptionally high utilization of its {dp['machines']} machines. Consider allocating more funds or equipment here."
-                 })
+            if dp['machines'] <= 0:
+                continue
+
+            idle_ratio = dp['idle_machines'] / dp['machines']
+            utilization_ratio = 1 - idle_ratio
+
+            if idle_ratio > 0.5:
+                recommendations.append({
+                    "type": "warning",
+                    "message": f"{dp['district']} has {idle_ratio*100:.0f}% idle equipment ({dp['idle_machines']} machines). Consider promotional campaigns or migrating equipment to high-demand areas."
+                })
+            elif utilization_ratio >= 0.8 and dp['hours'] > (dp['machines'] * 100):
+                recommendations.append({
+                    "type": "success",
+                    "message": f"{dp['district']} is showing exceptionally high utilization ({utilization_ratio*100:.0f}% active equipment) of its {dp['machines']} machines. Consider allocating more funds or equipment here."
+                })
 
         if not recommendations:
              recommendations.append({
